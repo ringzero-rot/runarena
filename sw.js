@@ -1,5 +1,5 @@
 /* RunArena service worker — app-shell cache + runtime caching for offline use. */
-const CACHE = 'runarena-v4';
+const CACHE = 'runarena-v5';
 
 // Core shell precached on install. Other same-origin modules and CDN assets are
 // cached at runtime the first time they're requested.

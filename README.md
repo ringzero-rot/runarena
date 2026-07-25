@@ -1,14 +1,37 @@
-# RunArena (Run Fun Mun)
+# RunArena (Run Fun Mun) 🏃
 
 ทุกเส้นทางคือสนาม • ทุกการวิ่งคือการท้าชิง — a competitive running web app for
-Bangkok. Real OpenStreetMap maps, real GPS run tracking, leaderboards, a unique
-Thai "ฉายา" (epithet) system, seasons, rewards, and shareable brag cards.
+Thailand. Real OpenStreetMap routes, real GPS run tracking, leaderboards, a
+unique Thai "ฉายา" (epithet) system, seasons, rewards, and shareable brag cards.
 
-This is the **rebuilt** version: the original was a single 870-line `index.html`
-prototype. It's now a modular, installable PWA with real GPS tracking, persistent
-state, and a storage layer that a Supabase backend drops into cleanly.
+[![Live demo](https://img.shields.io/badge/▶_live_demo-ringzero--rot.github.io%2Frunarena-brightgreen)](https://ringzero-rot.github.io/runarena/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8)
+![Build](https://img.shields.io/badge/build-none_(ES_modules)-orange)
+![Data](https://img.shields.io/badge/routes-38_across_12_provinces-28E0C8)
 
-## Run it
+### 👉 Try it now: **https://ringzero-rot.github.io/runarena/**
+
+Open on your phone and tap "Add to Home Screen" to install it as an app. No login
+needed — enter any name and start.
+
+> The original was a single 870-line `index.html` prototype. This is the rebuilt
+> version: a modular, installable PWA with real GPS tracking, real OSM route data
+> (38 routes across 33 venues), persistent local storage, and an optional
+> Supabase backend for real accounts + multiplayer leaderboards.
+
+## Highlights
+
+- 🗺️ **Real routes** — 38 running routes / 33 venues across 12 provinces (21 in
+  Bangkok), geometry pulled from OpenStreetMap (Overpass polygons + OSRM foot
+  routing), not hand-drawn.
+- 🛰️ **Real GPS tracking** with live pace/distance, plus a simulator for desktop.
+- 🔀 **Multiple routes per place** — e.g. สวนรถไฟ–จตุจักร offers 4 loops to pick.
+- 👑 **Leaderboards + unique Thai epithets** (5,981 non-repeating nicknames),
+  seasons, pace divisions, ghost race, rewards, share cards.
+- 📴 **Installable PWA**, works offline; **local-first** with optional cloud sync.
+
+## Run it locally
 
 No build step and no Node required — it's native ES modules. It must be **served
 over HTTP** (ES modules + the service worker don't run from `file://`).

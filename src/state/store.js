@@ -291,7 +291,9 @@ export function openRoute(id) { state.routeId = id; state.view = 'detail'; ensur
 export function setSeason(s) { state.season = s; notify(); }
 export function setDiv(v) { state.myDivOnly = v; notify(); }
 
-export function setSearch(v) { state.search = v; /* no persist; ui-only */ notify(); }
+// UI-only: does NOT notify. The search handler updates just the #routeList so the
+// input keeps focus/caret while typing (a full re-render would recreate it).
+export function setSearch(v) { state.search = v; }
 
 export function toggleFavorite(id) {
   if (state.favorites.has(id)) state.favorites.delete(id);
