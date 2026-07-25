@@ -67,6 +67,8 @@ const state = {
   feed: DEFAULT_FEED.map((f) => ({ ...f, id: 'seed' + (feedSeq++) })),
   kudosGiven: new Set(),
   duels: /** @type {any[]} */ ([]),
+  runs: /** @type {any[]} */ ([]),               // run history log
+  settings: { voice: true, ghostMode: false, onboarded: false },
   // derived cache
   routes: buildRoutes([]),
 };
@@ -100,6 +102,8 @@ function snapshot() {
     feed: state.feed.slice(0, 40),
     kudosGiven: [...state.kudosGiven],
     duels: state.duels,
+    runs: state.runs.slice(0, 100),
+    settings: state.settings,
   };
 }
 
@@ -124,6 +128,8 @@ export function hydrate() {
   state.feed = s.feed ?? DEFAULT_FEED.map((f) => ({ ...f, id: 'seed' + (feedSeq++) }));
   state.kudosGiven = new Set(s.kudosGiven ?? []);
   state.duels = s.duels ?? [];
+  state.runs = s.runs ?? [];
+  state.settings = { voice: true, ghostMode: false, onboarded: false, ...(s.settings ?? {}) };
   state.routes = buildRoutes(state.customRoutes);
 }
 
@@ -431,12 +437,46 @@ function resolveDuelsForRoute(routeId, mySec) {
   return results;
 }
 
+/* ------- run history / personal records / weekly recap / settings -------- */
+
+function pushRun(r) {
+  state.runs.unshift({ id: 'run' + Date.now(), date: new Date().toISOString(), ...r });
+  if (state.runs.length > 100) state.runs.length = 100;
+}
+export function runHistory() { return state.runs; }
+
+export function personalRecords() {
+  const runs = state.runs;
+  let bestPace = null, longest = 0, totalKm = 0;
+  runs.forEach((r) => {
+    totalKm += r.km || 0;
+    if (r.km > 0) {
+      const p = r.sec / r.km;
+      if (bestPace == null || p < bestPace) bestPace = p;
+      if (r.km > longest) longest = r.km;
+    }
+  });
+  const kings = state.routes.filter((x) => myRank(x.id) === 1).length;
+  return { totalRuns: runs.length, totalKm, bestPace, longest, kings };
+}
+
+export function weeklyStats() {
+  const cutoff = Date.now() - 7 * 24 * 3600 * 1000;
+  const recent = state.runs.filter((r) => new Date(r.date).getTime() >= cutoff);
+  return { runs: recent.length, km: recent.reduce((a, r) => a + (r.km || 0), 0) };
+}
+
+export function getSettings() { return state.settings; }
+export function setSetting(key, val) { state.settings = { ...state.settings, [key]: val }; persist(); notify(); }
+export function completeOnboarding() { state.settings.onboarded = true; persist(); notify(); }
+
 /**
  * Record a run result. Keeps the best (fastest) time; awards points + XP;
- * advances daily missions; resolves duels; posts to the activity feed.
+ * advances daily missions; resolves duels; posts to the activity feed; and logs
+ * the run to history.
  * @returns {{ improved:number|null, isBest:boolean, rank:number, prevRank:number|null, gained:number, xpGain:number, levelUp:number|null, duelResults:any[] }}
  */
-export function recordResult(routeId, sec, km) {
+export function recordResult(routeId, sec, km, mode) {
   const prevRank = myRank(routeId);
   const best = state.results[routeId];
   const firstTime = best == null;
@@ -468,6 +508,8 @@ export function recordResult(routeId, sec, km) {
   pushFeedInternal({ icon: king ? '👑' : rank <= 3 ? '🎯' : '🏁', who: state.user?.name || 'คุณ', initial: state.user?.initial || '?',
     text: king ? `ยึดบัลลังก์ราชาที่ <b>${rname}</b>` : `จบ challenge <b>${rname}</b> อันดับ #${rank}`, t: 'เมื่อสักครู่', me: true });
 
+  pushRun({ routeId, routeName: route ? route.name : '', sec, km: km || (route ? route.distanceKm : 0), rank, king, mode: mode || 'sim' });
+
   persist();
   return { improved, isBest, rank, prevRank, gained, xpGain, levelUp, duelResults };
 }
@@ -487,6 +529,7 @@ export function addRoute(name, coords, km, sec) {
   missionProgress('run', 1);
   if (km) missionProgress('distance', km);
   pushFeedInternal({ icon: '🗺️', who: state.user?.name || 'คุณ', initial: state.user?.initial || '?', text: `เปิดสนามใหม่ <b>${esc(name)}</b>`, t: 'เมื่อสักครู่', me: true });
+  pushRun({ routeId: id, routeName: name, sec, km, rank: 1, king: true, mode: 'new' });
   persist();
   return id;
 }

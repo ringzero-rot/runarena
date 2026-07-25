@@ -25,6 +25,8 @@ import { notifsView } from './views/notifs.js';
 import { feedView } from './views/feed.js';
 import { startChallenge } from './views/run.js';
 import { openDraw } from './views/draw.js';
+import { openOnboarding } from './views/onboarding.js';
+import { openSettings } from './views/settings.js';
 
 /* --------------------------------------------------------------- chrome */
 function topbar() {
@@ -75,7 +77,10 @@ function render() {
   app.innerHTML = `${topbar()}<div class="content" id="content">${viewContent()}</div>${navbar()}`;
   mountMaps();
   wireSearch();
+  // first-run teaching (once)
+  if (!st.settings.onboarded && !onboardingShown) { onboardingShown = true; openOnboarding(); }
 }
+let onboardingShown = false;
 
 function mountMaps() {
   const st = getState();
@@ -165,6 +170,7 @@ const handlers = {
   claimMission: (key) => { const r = claimMission(key); if (r) toast(`รับรางวัล +${r.xp} XP · +${r.points} พอยต์ 🎉`); },
   kudos: (id) => { if (giveKudos(id)) toast('ส่งกำลังใจแล้ว 👊'); },
   duel: (routeId) => { const name = challengeRival(routeId); toast(name ? `⚔️ ท้าดวล ${name} แล้ว! วิ่งให้ชนะเวลาเขา` : 'ยังไม่มีคู่ปรับให้ท้า — คุณอาจเป็นราชาอยู่แล้ว 👑'); },
+  openSettings: () => openSettings(),
 };
 
 /* --------------------------------------------------------------- boot */

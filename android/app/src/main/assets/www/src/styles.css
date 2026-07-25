@@ -355,3 +355,42 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:980;overflow:hidden}
 .confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.5}}
+
+/* weekly recap */
+.weekrecap{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;color:var(--mid);font-size:12px;font-family:var(--disp);font-weight:600;text-align:center}
+.weekrecap b{color:var(--trace)}
+
+/* personal records */
+.prgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
+.pr{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 4px;text-align:center}
+.pr b{display:block;font-family:var(--disp);font-weight:800;font-size:16px;color:var(--gold)}
+.pr span{font-size:8.5px;color:var(--dim);font-family:var(--disp);margin-top:3px;display:block;line-height:1.2}
+
+/* run history */
+.histrow{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:10px 12px;margin-bottom:7px}
+.histic{font-size:18px;width:30px;text-align:center;flex-shrink:0}
+.histinfo{flex:1;min-width:0}
+.histname{font-family:var(--disp);font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.histmeta{font-size:10.5px;color:var(--dim);margin-top:2px}
+.histtime{font-family:var(--disp);font-weight:800;font-size:14px;text-align:right;flex-shrink:0}
+.histtime small{display:block;font-weight:500;font-size:9px;color:var(--dim)}
+
+/* settings sheet */
+.setrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.setinfo{flex:1;min-width:0}
+.setinfo b{font-family:var(--disp);font-weight:600;font-size:14px}
+.setinfo span{display:block;font-size:11px;color:var(--mid);margin-top:2px}
+.toggle{flex-shrink:0;width:46px;height:28px;border-radius:999px;background:#0d1017;border:1px solid var(--line);position:relative;cursor:pointer;transition:.2s}
+.toggle i{position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--mid);transition:.2s}
+.toggle.on{background:rgba(40,224,200,.25);border-color:var(--trace)}
+.toggle.on i{left:20px;background:var(--trace)}
+.linkrow .t{flex:1}
+
+/* onboarding */
+.sheet.onboard{text-align:center}
+.obicon{font-size:56px;margin:6px 0 10px}
+.sheet.onboard h2{font-size:21px}
+.sheet.onboard p{font-size:14px;line-height:1.6;margin-bottom:16px}
+.obdots{display:flex;justify-content:center;gap:7px;margin-bottom:16px}
+.obdots span{width:7px;height:7px;border-radius:50%;background:var(--line);transition:.2s}
+.obdots span.on{background:var(--trace);width:20px;border-radius:4px}
