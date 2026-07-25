@@ -1,7 +1,52 @@
 // @ts-check
 import { esc } from '../ui/dom.js';
-import { getState, venues, venueNearest, venueBestRank, venueFavored } from '../state/store.js';
+import { getState, venues, venueNearest, venueBestRank, venueFavored, levelOf, dailyMissions } from '../state/store.js';
 import { TRACE_PATHS } from '../data/routes.js';
+
+/** Personal dashboard: level + XP, streak/stats, and today's missions. */
+function dashboardHTML() {
+  const st = getState();
+  const lv = levelOf();
+  const ran = Object.keys(st.results).length;
+  const kings = venues().filter((v) => venueBestRank(v) === 1).length;
+  const missions = dailyMissions();
+  const doneCount = missions.filter((m) => m.claimed).length;
+  return `
+  <div class="dash">
+    <div class="dashtop">
+      <div class="lvbadge"><span class="lvic">${lv.icon}</span><span class="lvnum">Lv.${lv.level}</span></div>
+      <div class="dashwho"><div class="dashname">${esc(st.user?.name || 'นักวิ่ง')}</div><div class="dashtitle">${esc(lv.title)}</div></div>
+      <div class="dashpts"><b>${st.points.toLocaleString()}</b><span>พอยต์</span></div>
+    </div>
+    <div class="xpwrap">
+      <div class="xpbar"><div class="xpfill" style="width:${(lv.pct * 100).toFixed(0)}%"></div></div>
+      <div class="xptext">${lv.cur} / ${lv.next} XP · อีก ${lv.next - lv.cur} XP ถึง Lv.${lv.level + 1}</div>
+    </div>
+    <div class="dashstats">
+      <div class="ds"><b>🔥 ${st.streak}</b><span>สตรีค</span></div>
+      <div class="ds"><b>🏟️ ${ran}</b><span>สนามที่วิ่ง</span></div>
+      <div class="ds"><b>👑 ${kings}</b><span>บัลลังก์</span></div>
+    </div>
+  </div>
+  <div class="seg">🎯 ภารกิจวันนี้ <span class="more">${doneCount}/${missions.length} สำเร็จ</span></div>
+  <div class="missions">
+    ${missions.map((m) => {
+      const done = m.progress >= m.goal;
+      const claimable = done && !m.claimed;
+      return `<div class="mission ${m.claimed ? 'claimed' : ''}">
+        <div class="mic">${m.icon}</div>
+        <div class="minfo">
+          <div class="mtext">${esc(m.text)}</div>
+          <div class="mtrack"><div class="mfill" style="width:${Math.min(100, (m.progress / m.goal) * 100)}%"></div></div>
+          <div class="mmeta">${m.progress}/${m.goal} · +${m.xp} XP · +${m.points} พอยต์</div>
+        </div>
+        ${m.claimed ? '<div class="mdone">✓</div>'
+          : claimable ? `<button class="mclaim" data-action="claimMission" data-arg="${esc(m.key)}">รับ</button>`
+          : '<div class="mlock">🔒</div>'}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
 
 function miniTrace(i) {
   return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="${TRACE_PATHS[i % 4]}" fill="none" stroke="var(--trace)" stroke-width="2.6" stroke-linecap="round" transform="scale(.95) translate(2,2)"/></svg>`;
@@ -67,10 +112,7 @@ export function homeView() {
     : st.locStatus === 'loading' ? '⌖ กำลังหาตำแหน่ง…'
     : '⌖ แตะเพื่อใช้ตำแหน่งจริง';
   return `
-    <div class="home-hero home-hide">
-      <div class="eyebrow">สนามทั่วไทย</div><h1 class="title">สนามของคุณ</h1>
-      <div class="sub">ค้นหาสนามวิ่งจริงทั่วประเทศ แล้วออกไปท้าชิงจับเวลา</div>
-    </div>
+    <div class="home-hero home-hide">${dashboardHTML()}</div>
     <div class="searchwrap">
       <div class="search">🔎<input id="searchInput" type="search" enterkeyhint="search" autocomplete="off"
         placeholder="ค้นหาสนาม / จังหวัด…" value="${esc(st.search)}" aria-label="ค้นหาสนามหรือจังหวัด">

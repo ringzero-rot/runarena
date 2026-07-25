@@ -272,3 +272,84 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
   font-family:var(--disp);font-weight:700;font-size:13px;border-radius:10px;padding:8px 14px;cursor:pointer;white-space:nowrap}
 
 .verline{text-align:center;color:var(--dim);font-size:10.5px;font-family:var(--disp);margin-top:16px;letter-spacing:.04em}
+
+/* ===================== engagement layer ===================== */
+/* topbar level chip */
+.lvchip{background:linear-gradient(90deg,rgba(40,224,200,.16),rgba(245,184,61,.16));border:1px solid rgba(40,224,200,.4);
+  color:var(--trace);font-family:var(--disp);font-weight:700;font-size:12px;border-radius:999px;padding:4px 10px;cursor:pointer}
+.streak{font-family:var(--disp);font-weight:700;font-size:12px;color:var(--gold);background:rgba(245,184,61,.12);border:1px solid rgba(245,184,61,.35);border-radius:999px;padding:4px 9px}
+.navdot{position:absolute;top:-3px;right:-8px;width:7px;height:7px;border-radius:50%;background:var(--sunrise);box-shadow:0 0 6px var(--sunrise)}
+.nav .ic{position:relative}
+
+/* dashboard */
+.dash{background:linear-gradient(135deg,#1b2030,#141821 60%,#12151d);border:1px solid var(--line);border-radius:18px;padding:15px;margin:2px 0 4px}
+.dashtop{display:flex;align-items:center;gap:12px}
+.lvbadge{display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:52px;flex-shrink:0;
+  background:radial-gradient(circle at 50% 30%,rgba(40,224,200,.25),rgba(20,24,34,.2));border:1.5px solid var(--trace);border-radius:14px}
+.lvbadge .lvic{font-size:20px;line-height:1}
+.lvbadge .lvnum{font-family:var(--disp);font-weight:800;font-size:10px;color:var(--trace);margin-top:1px}
+.dashwho{flex:1;min-width:0}
+.dashname{font-family:var(--disp);font-weight:800;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dashtitle{color:var(--gold);font-size:12px;font-family:var(--disp);font-weight:600;margin-top:1px}
+.dashpts{text-align:right;flex-shrink:0}
+.dashpts b{display:block;font-family:var(--disp);font-weight:800;font-size:18px;color:var(--gold)}
+.dashpts span{font-size:9.5px;color:var(--dim);font-family:var(--disp)}
+.xpwrap{margin-top:12px}
+.xpbar{height:8px;border-radius:5px;background:#0d1017;overflow:hidden;border:1px solid var(--line)}
+.xpfill{height:100%;background:linear-gradient(90deg,var(--trace),var(--gold));border-radius:5px;transition:width .4s ease}
+.xptext{font-size:10px;color:var(--dim);font-family:var(--disp);margin-top:5px;text-align:right}
+.dashstats{display:flex;gap:8px;margin-top:13px}
+.ds{flex:1;background:rgba(13,16,23,.6);border:1px solid var(--line);border-radius:12px;padding:9px 4px;text-align:center}
+.ds b{display:block;font-family:var(--disp);font-weight:800;font-size:15px}
+.ds span{font-size:9px;color:var(--dim);font-family:var(--disp);margin-top:2px;display:block}
+
+/* missions */
+.missions{display:flex;flex-direction:column;gap:8px}
+.mission{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px}
+.mission.claimed{opacity:.55}
+.mic{font-size:20px;width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#0d1017;border:1px solid var(--line);border-radius:10px}
+.minfo{flex:1;min-width:0}
+.mtext{font-family:var(--disp);font-weight:600;font-size:13px}
+.mtrack{height:6px;border-radius:4px;background:#0d1017;overflow:hidden;margin:6px 0 5px}
+.mfill{height:100%;background:var(--trace);border-radius:4px;transition:width .3s}
+.mmeta{font-size:10px;color:var(--dim);font-family:var(--disp)}
+.mclaim{flex-shrink:0;background:linear-gradient(90deg,var(--gold),#f7cb6b);color:#1a1205;border:none;font-family:var(--disp);font-weight:800;font-size:12px;border-radius:10px;padding:9px 14px;cursor:pointer;animation:pulseglow 1.6s infinite}
+@keyframes pulseglow{0%,100%{box-shadow:0 0 0 0 rgba(245,184,61,.5)}50%{box-shadow:0 0 0 6px rgba(245,184,61,0)}}
+.mdone{flex-shrink:0;color:var(--trace);font-size:18px;font-weight:800}
+.mlock{flex-shrink:0;color:var(--dim);font-size:15px}
+
+/* feed */
+.feedrow{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px;margin-bottom:8px}
+.feedrow.me{border-color:rgba(40,224,200,.4);background:rgba(40,224,200,.06)}
+.feedbody{flex:1;min-width:0}
+.feedtext{font-size:12.5px;line-height:1.45}
+.feedtext b{font-family:var(--disp);font-weight:700}
+.feedtext .fic{font-size:14px}
+.feedmeta{font-size:10px;color:var(--dim);margin-top:3px;font-family:var(--disp)}
+.kudosbtn{flex-shrink:0;background:#0d1017;border:1px solid var(--line);color:var(--mid);font-family:var(--disp);font-weight:700;font-size:12px;border-radius:10px;padding:8px 11px;cursor:pointer}
+.kudosbtn.on{background:rgba(255,86,48,.14);border-color:var(--sunrise);color:var(--sunrise)}
+.kudosbtn:active{transform:scale(.94)}
+
+/* duel + rival cards */
+.duelcard{display:flex;align-items:center;gap:10px;background:linear-gradient(100deg,rgba(255,86,48,.14),rgba(255,86,48,.03));border:1px solid rgba(255,86,48,.4);border-radius:14px;padding:12px;margin-bottom:9px}
+.duelinfo{flex:1;min-width:0;font-size:13px;font-family:var(--disp);font-weight:600}
+.duelinfo span{display:block;font-size:11px;color:var(--mid);font-weight:500;margin-top:2px}
+.rivalcard{display:flex;align-items:center;gap:11px;background:linear-gradient(100deg,rgba(245,184,61,.14),rgba(245,184,61,.03));border:1px solid rgba(245,184,61,.45);border-radius:15px;padding:12px;margin-bottom:9px}
+.rivalinfo{flex:1;min-width:0}
+.rivalinfo b{font-family:var(--disp);font-weight:700;font-size:13px}
+.rivalinfo span{display:block;font-size:11px;color:var(--mid);margin-top:2px}
+.rivalbtn{flex-shrink:0;background:linear-gradient(90deg,var(--sunrise),#ff7a52);color:#fff;border:none;font-family:var(--disp);font-weight:800;font-size:12px;border-radius:11px;padding:10px 13px;cursor:pointer}
+.rivalbtn:active{transform:scale(.96)}
+
+/* result rewards + level up */
+.rewardrow{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:8px 0 4px}
+.rw{font-family:var(--disp);font-weight:700;font-size:12px;border-radius:999px;padding:4px 11px;border:1px solid}
+.rw.pt{color:var(--gold);border-color:rgba(245,184,61,.4);background:rgba(245,184,61,.1)}
+.rw.xp{color:var(--trace);border-color:rgba(40,224,200,.4);background:rgba(40,224,200,.1)}
+.rw.duel{color:var(--sunrise);border-color:rgba(255,86,48,.4);background:rgba(255,86,48,.1)}
+.levelup{text-align:center;font-family:var(--disp);font-weight:800;font-size:15px;color:#1a1205;background:linear-gradient(90deg,var(--gold),#f7cb6b);border-radius:12px;padding:11px;margin:10px 0}
+
+/* confetti */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:980;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.5}}

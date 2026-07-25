@@ -9,7 +9,7 @@ import {
   hydrate, connectCloud, subscribe, getState, unreadCount,
   login, logout, setView, openRoute, setSeason, setDiv, toggleFavorite,
   setSearch, setLocStatus, setLocation, redeem, markNotificationsRead, myRank, distFromMe,
-  venueById, toggleVenueFav,
+  venueById, toggleVenueFav, levelOf, claimMission, giveKudos, challengeRival, pendingDuels,
 } from './state/store.js';
 import { openVenue } from './views/venue.js';
 import { BKK } from './data/routes.js';
@@ -22,6 +22,7 @@ import { eventsView } from './views/events.js';
 import { rewardsView } from './views/rewards.js';
 import { profileView, rerollEpithet } from './views/profile.js';
 import { notifsView } from './views/notifs.js';
+import { feedView } from './views/feed.js';
 import { startChallenge } from './views/run.js';
 import { openDraw } from './views/draw.js';
 
@@ -29,20 +30,25 @@ import { openDraw } from './views/draw.js';
 function topbar() {
   const st = getState();
   const n = unreadCount();
+  const lv = levelOf();
   return `<div class="topbar"><div class="logo">RUN<b>ARENA</b></div>
-    <div class="topright"><span class="streak">🔥 ${st.streak} วัน</span>
-    <button class="bell" data-action="tab" data-arg="notifs" aria-label="การแจ้งเตือน">🔔${n ? `<span class="badge">${n}</span>` : ''}</button></div></div>`;
+    <div class="topright">
+      <button class="lvchip" data-action="tab" data-arg="profile" aria-label="โปรไฟล์">${lv.icon} Lv.${lv.level}</button>
+      <span class="streak">🔥 ${st.streak}</span>
+      <button class="bell" data-action="tab" data-arg="notifs" aria-label="การแจ้งเตือน">🔔${n ? `<span class="badge">${n}</span>` : ''}</button></div></div>`;
 }
 function navbar() {
   const view = getState().view;
-  const items = [['home', '🏟️', 'สนาม'], ['events', '📅', 'ฟีดงานวิ่ง'], ['rewards', '🏆', 'รางวัล'], ['profile', '👤', 'โปรไฟล์']];
+  const duels = pendingDuels().length;
+  const items = [['home', '🏟️', 'สนาม'], ['feed', '🔥', 'ฟีด'], ['rewards', '🏆', 'รางวัล'], ['events', '📅', 'งานวิ่ง'], ['profile', '👤', 'โปรไฟล์']];
   return `<div class="nav">${items.map(([v, i, l]) =>
-    `<button class="${view === v ? 'on' : ''}" data-action="tab" data-arg="${v}" aria-current="${view === v}"><span class="ic">${i}</span>${l}</button>`).join('')}</div>`;
+    `<button class="${view === v ? 'on' : ''}" data-action="tab" data-arg="${v}" aria-current="${view === v}"><span class="ic">${i}${v === 'feed' && duels ? `<span class="navdot"></span>` : ''}</span>${l}</button>`).join('')}</div>`;
 }
 
 function viewContent() {
   switch (getState().view) {
     case 'home': return homeView();
+    case 'feed': return feedView();
     case 'events': return eventsView();
     case 'rewards': return rewardsView();
     case 'profile': return profileView();
@@ -156,6 +162,9 @@ const handlers = {
   rerollEpithet: () => { rerollEpithet(); const c = $('content'); if (c) c.innerHTML = profileView(); },
   redeem: (i) => { if (!redeem(Number(i), SPONSORS)) toast('พอยต์ไม่พอ — วิ่ง challenge เพิ่มเพื่อสะสม!'); else toast('แลกของสำเร็จ! 🎉'); },
   openEvent: (url) => window.open(url, '_blank', 'noopener,noreferrer'),
+  claimMission: (key) => { const r = claimMission(key); if (r) toast(`รับรางวัล +${r.xp} XP · +${r.points} พอยต์ 🎉`); },
+  kudos: (id) => { if (giveKudos(id)) toast('ส่งกำลังใจแล้ว 👊'); },
+  duel: (routeId) => { const name = challengeRival(routeId); toast(name ? `⚔️ ท้าดวล ${name} แล้ว! วิ่งให้ชนะเวลาเขา` : 'ยังไม่มีคู่ปรับให้ท้า — คุณอาจเป็นราชาอยู่แล้ว 👑'); },
 };
 
 /* --------------------------------------------------------------- boot */

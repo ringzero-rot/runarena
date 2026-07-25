@@ -7,5 +7,5 @@
  * /sw.js (kept in sync on purpose — a changed sw.js is what triggers the update
  * prompt).
  */
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 export const BUILD = '2026-07-25';

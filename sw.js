@@ -1,7 +1,7 @@
 /* RunArena service worker — app-shell cache + runtime caching for offline use. */
 // Keep this version in sync with src/version.js (VERSION). A changed cache name
 // is what triggers the in-app "new version available" update prompt.
-const CACHE = 'runarena-1.0.0';
+const CACHE = 'runarena-1.1.0';
 
 // Core shell precached on install. Other same-origin modules and CDN assets are
 // cached at runtime the first time they're requested.
@@ -36,22 +36,39 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Cache-first with background refresh (stale-while-revalidate) for GET requests.
-// Map tiles and fonts get cached on first use so a previously viewed area works
-// offline. Non-GET and cross-scheme requests pass straight through.
+function cacheable(res) {
+  return res && res.status === 200 && (res.type === 'basic' || res.type === 'cors');
+}
+
+// Our own app code (HTML + JS) is served NETWORK-FIRST so an online user always
+// runs the latest version — cache is only a fallback (offline). This prevents
+// the "stuck on a stale/broken cached build" problem. Everything else (CSS,
+// icons, CDN libs, map tiles, fonts) stays cache-first for speed/offline.
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || !req.url.startsWith('http')) return;
+  const url = new URL(req.url);
+  const sameOrigin = url.origin === self.location.origin;
+  const isAppCode = sameOrigin && (req.mode === 'navigate' || url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('/'));
+
+  if (isAppCode) {
+    e.respondWith(
+      caches.open(CACHE).then((cache) =>
+        fetch(req)
+          .then((res) => { if (cacheable(res)) cache.put(req, res.clone()); return res; })
+          .catch(() => cache.match(req).then((c) => c || cache.match('./index.html')))
+      )
+    );
+    return;
+  }
+
+  // cache-first + background revalidate for everything else
   e.respondWith(
     caches.open(CACHE).then((cache) =>
       cache.match(req).then((cached) => {
         const network = fetch(req)
-          .then((res) => {
-            if (res && res.status === 200 && (res.type === 'basic' || res.type === 'cors')) {
-              cache.put(req, res.clone());
-            }
-            return res;
-          })
+          .then((res) => { if (cacheable(res)) cache.put(req, res.clone()); return res; })
           .catch(() => cached);
         return cached || network;
       })

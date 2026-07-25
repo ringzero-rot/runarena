@@ -54,8 +54,9 @@ export function detailView() {
         <div class="pname">${esc(king.name)}${king.isMe ? ' (คุณ)' : ''}</div>
         <div class="ptime">${fmt(king.sec)}</div></div>
     </div>
-    ${rival ? `<div class="banner" role="button" tabindex="0" data-action="startChallenge" data-arg="${esc(r.id)}"><span class="pulse"></span>
-      <div><b>คู่ปรับของคุณ: ${esc(rival.name)}</b><span>เร็วกว่าคุณแค่ ${Math.max(1, Math.round(me.sec - rival.sec))} วินาที — แซงได้ในรอบหน้า!</span></div></div>` : ''}
+    ${rival ? `<div class="rivalcard"><span class="pulse"></span>
+      <div class="rivalinfo"><b>คู่ปรับ: ${esc(rival.name)}</b><span>เร็วกว่าคุณแค่ ${Math.max(1, Math.round(me.sec - rival.sec))} วินาที — แซงได้!</span></div>
+      <button class="rivalbtn" data-action="duel" data-arg="${esc(r.id)}">⚔️ ท้าดวล</button></div>` : ''}
     <div class="tabs" role="tablist">
       <button class="tab ${st.season === 'all' ? 'on' : ''}" data-action="setSeason" data-arg="all" role="tab" aria-selected="${st.season === 'all'}">🏆 ตลอดกาล</button>
       <button class="tab ${st.season === 'week' ? 'on' : ''}" data-action="setSeason" data-arg="week" role="tab" aria-selected="${st.season === 'week'}">📅 ซีซั่นสัปดาห์นี้</button>

@@ -177,7 +177,7 @@ function finishRun(ctx, summary) {
   }
 
   // Arena result
-  const res = recordResult(route.id, summary.sec);
+  const res = recordResult(route.id, summary.sec, route.distanceKm);
   const king = res.rank === 1;
   const kt = king ? rankTitle(1, route.name, uid()) : null;
   const ep = epithet(uid(), route.id);
@@ -192,22 +192,49 @@ function finishRun(ctx, summary) {
     ? '<div class="verified">✓ ตรวจสอบแล้ว: GPS จริง ระยะครบ เพซสมจริง</div>'
     : '<div class="verified" style="color:var(--mid);border-color:var(--line)">โหมดจำลอง (เดโม) — ไม่นับเป็นสถิติจริง</div>';
 
+  const wonDuel = res.duelResults.find((d) => d.status === 'won');
+  const lostDuel = res.duelResults.find((d) => d.status === 'lost');
+
   o.innerHTML = `<div class="sheet">
     <div class="resultBadge">
       <div class="eyebrow">ผลถูกดึงเข้าแอปแล้ว</div>
       <div class="rkbig">#${res.rank}</div>
-      <div class="lab">จาก ${route.runners} คน • ${fmt(summary.sec)} • ${pace(summary.sec, route.distanceKm)}/กม. • +${res.gained} พอยต์</div>
+      <div class="lab">จาก ${route.runners} คน • ${fmt(summary.sec)} • ${pace(summary.sec, route.distanceKm)}/กม.</div>
+      <div class="rewardrow"><span class="rw pt">+${res.gained} พอยต์</span><span class="rw xp">+${res.xpGain} XP</span>${wonDuel ? '<span class="rw duel">⚔️ ชนะดวล +150</span>' : ''}</div>
       ${verifiedLine}
       ${king ? `<div class="kingTag">👑 ${esc(kt)}</div>` : ''}
       <div style="font-family:var(--disp);font-weight:600;color:#f7e6b8;margin-top:6px">${esc(ep)}</div>
     </div>
+    ${res.levelUp ? `<div class="levelup">⭐ เลเวลอัพ! คุณคือเลเวล ${res.levelUp} แล้ว</div>` : ''}
+    ${wonDuel ? `<div class="comeback">🏆 ชนะดวล ${esc(wonDuel.opponentName)}! เก็บ +150 XP</div>` : ''}
+    ${lostDuel ? `<div class="hint">⚔️ ยังแพ้ดวล ${esc(lostDuel.opponentName)} อยู่ — ซ้อมแล้วท้าใหม่ได้</div>` : ''}
     ${res.improved && res.improved >= 5 ? `<div class="comeback">🔥 พุ่งขึ้น ${res.improved} อันดับ! เข้าเงื่อนไข Comeback Reward</div>` : ''}
     ${!res.isBest ? `<div class="hint">ครั้งนี้ช้ากว่าสถิติเดิม — อันดับยึดเวลาที่ดีที่สุด</div>` : ''}
     <button class="btn gold" id="shareBtn" style="margin-top:10px">🎴 สร้างการ์ดขิงเพื่อน</button>
     <button class="btn" id="seeBoard" style="margin-top:8px">ดูอันดับในสนาม</button></div>`;
 
+  if (king || res.levelUp || wonDuel) confetti();
+
   $('shareBtn').addEventListener('click', () => {
     openShare(kt || ('อันดับ #' + res.rank + ' แห่ง' + route.name), ep, route.name, fmt(summary.sec), res.rank);
   });
   $('seeBoard').addEventListener('click', () => { closeRun(); openRoute(route.id); });
+}
+
+/** Lightweight confetti burst for celebratory moments. */
+function confetti() {
+  const colors = ['#FF5630', '#F5B83D', '#28E0C8', '#4defd8', '#f7cb6b'];
+  const wrap = document.createElement('div');
+  wrap.className = 'confetti';
+  for (let i = 0; i < 70; i++) {
+    const p = document.createElement('i');
+    p.style.left = Math.random() * 100 + '%';
+    p.style.background = colors[i % colors.length];
+    p.style.animationDelay = (Math.random() * 0.5) + 's';
+    p.style.animationDuration = (1.6 + Math.random() * 1.2) + 's';
+    p.style.transform = `rotate(${Math.random() * 360}deg)`;
+    wrap.appendChild(p);
+  }
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 3200);
 }
