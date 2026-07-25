@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- runner "trace" swooshes, centered within the 72dp safe zone -->
+    <path
+        android:pathData="M32,72 C46,61 51,66 60,50 S78,39 86,40"
+        android:strokeColor="#28E0C8"
+        android:strokeWidth="6"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M30,80 C46,69 52,74 61,58 S80,45 88,46"
+        android:strokeColor="#FF5630"
+        android:strokeWidth="7"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M86,40 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0"
+        android:fillColor="#28E0C8" />
+    <path
+        android:pathData="M30,80 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0"
+        android:fillColor="#FF5630" />
+</vector>

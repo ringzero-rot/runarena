@@ -14,3 +14,15 @@ __pycache__/
 
 # Node (not used, but just in case)
 node_modules/
+
+# Android build artifacts (the project sources ARE committed; these are generated)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+android/.idea/
+android/**/*.iml
+*.apk
+*.aab
+.cxx/
