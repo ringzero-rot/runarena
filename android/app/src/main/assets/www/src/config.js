@@ -16,6 +16,9 @@ export const SUPABASE = {
   anonKey: '',  // e.g. 'eyJhbGciOi...'
 };
 
+/** Public base URL used for shareable invite/challenge links. */
+export const SHARE_BASE = 'https://ringzero-rot.github.io/runarena/';
+
 /** True when a Supabase project is configured. */
 export function cloudEnabled() {
   const w = typeof window !== 'undefined' ? (window.RUNARENA_CONFIG || {}) : {};

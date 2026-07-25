@@ -233,7 +233,7 @@ function finishRun(ctx, summary) {
   if (king || res.levelUp || wonDuel) confetti();
 
   $('shareBtn').addEventListener('click', () => {
-    openShare(kt || ('อันดับ #' + res.rank + ' แห่ง' + route.name), ep, route.name, fmt(summary.sec), res.rank);
+    openShare(kt || ('อันดับ #' + res.rank + ' แห่ง' + route.name), ep, route.name, fmt(summary.sec), res.rank, route.id);
   });
   $('seeBoard').addEventListener('click', () => { closeRun(); openRoute(route.id); });
 }

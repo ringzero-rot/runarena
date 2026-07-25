@@ -12,6 +12,7 @@ function dashboardHTML() {
   const missions = dailyMissions();
   const doneCount = missions.filter((m) => m.claimed).length;
   const wk = weeklyStats();
+  const goal = st.settings.weeklyGoalKm || 20;
   return `
   <div class="dash">
     <div class="dashtop">
@@ -28,7 +29,11 @@ function dashboardHTML() {
       <div class="ds"><b>🏟️ ${ran}</b><span>สนามที่วิ่ง</span></div>
       <div class="ds"><b>👑 ${kings}</b><span>บัลลังก์</span></div>
     </div>
-    <div class="weekrecap">📅 สัปดาห์นี้ · วิ่ง <b>${wk.runs}</b> ครั้ง · <b>${wk.km.toFixed(1)}</b> กม.</div>
+    <div class="weekgoal">
+      <div class="wgtop">🎯 เป้าหมายสัปดาห์นี้<b>${wk.km.toFixed(1)} / ${goal} กม.</b></div>
+      <div class="wgbar"><div class="wgfill" style="width:${Math.min(100, (wk.km / goal) * 100)}%"></div></div>
+      <div class="wgmeta">วิ่งแล้ว ${wk.runs} ครั้ง${wk.km >= goal ? ' · ✅ ถึงเป้าแล้ว เก่งมาก!' : ` · เหลืออีก ${Math.max(0, goal - wk.km).toFixed(1)} กม.`}</div>
+    </div>
   </div>
   <div class="seg">🎯 ภารกิจวันนี้ <span class="more">${doneCount}/${missions.length} สำเร็จ</span></div>
   <div class="missions">

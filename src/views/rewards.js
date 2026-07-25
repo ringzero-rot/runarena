@@ -10,6 +10,17 @@ export function rewardsView() {
   const shirtP = elig.length ? 0.62 : 0.2;
   return `<div class="eyebrow">แรงจูงใจให้วิ่งต่อ</div><h1 class="title">รางวัล & สิทธิประโยชน์</h1>
     <div class="sub">ทั้งของเราเองและจากสปอนเซอร์ — ให้สิทธิ์คนตั้งใจวิ่งจริง</div>
+    <div class="procard">
+      <div class="protop"><span class="probadge">✦ PRO</span><b>RunArena Pro</b></div>
+      <ul class="prolist">
+        <li>📊 วิเคราะห์การวิ่งเชิงลึก — กราฟเพซ/สปลิต/ความชัน</li>
+        <li>⚔️ ท้าดวลไม่จำกัด + ดวลเดิมพันแต้ม</li>
+        <li>👑 ฉายา & การ์ดขิงลายพิเศษเฉพาะ Pro</li>
+        <li>🚫 ไม่มีโฆษณา + แผนซ้อมส่วนตัว</li>
+      </ul>
+      <button class="btn gold" data-action="proWaitlist">✦ สนใจ RunArena Pro</button>
+      <div class="hint" style="margin-top:8px">เร็ว ๆ นี้ • กดเพื่อรับสิทธิ์ก่อนใครตอนเปิดตัว</div>
+    </div>
     <div class="pointbox"><div class="k">พอยต์สะสมของคุณ</div><div class="v">${st.points.toLocaleString()}</div>
       <div class="k" style="margin-top:6px">🔥 วิ่งต่อเนื่อง ${st.streak} วัน • ครองบัลลังก์ ${kings.length} สนาม</div></div>
     <div class="seg">🏅 รางวัลของเราเอง</div>

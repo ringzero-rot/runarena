@@ -1,6 +1,17 @@
 // @ts-check
 import { $ } from '../ui/dom.js';
 import { toast } from '../ui/toast.js';
+import { SHARE_BASE } from '../config.js';
+
+/** Native share of an arena invite link (falls back to clipboard). */
+export async function shareArena(routeId, routeName) {
+  const url = SHARE_BASE + '#/r/' + encodeURIComponent(routeId);
+  const text = `มาท้าชิงเวลาที่ “${routeName}” ใน RunArena กัน! 🏃‍♂️👑`;
+  try {
+    if (navigator.share) { await navigator.share({ title: 'RunArena', text, url }); return 'shared'; }
+  } catch { return 'cancel'; }
+  try { await navigator.clipboard.writeText(text + ' ' + url); return 'copied'; } catch { return 'fail'; }
+}
 
 function closeOverlay(id) {
   const o = $(id);
@@ -42,15 +53,34 @@ function wrap(x, txt, cx, cy, max, lh) {
 }
 
 /** Open the share sheet and render the card. */
-export function openShare(title, ep, routeName, time, rank) {
+export function openShare(title, ep, routeName, time, rank, routeId) {
   const o = document.createElement('div');
   o.className = 'overlay'; o.id = 'shareOverlay';
   o.innerHTML = `<div class="sheet"><div class="eyebrow">ขิงเพื่อน</div><h2>การ์ดฉายาของคุณ</h2>
     <canvas id="sharecanvas" width="800" height="1000"></canvas>
-    <button class="btn gold" id="dlCard">⬇ บันทึกรูปไปโพสต์</button>
-    <button class="btn ghost small" id="copyBrag" style="margin-top:8px">📋 คัดลอกข้อความขิง</button>
+    <button class="btn gold" id="shareCard">📤 แชร์ไป LINE / IG</button>
+    <button class="btn ghost small" id="dlCard" style="margin-top:8px">⬇ บันทึกรูป</button>
+    <button class="btn ghost small" id="copyBrag" style="margin-top:8px">📋 คัดลอกข้อความ + ลิงก์</button>
     <button class="btn ghost small" id="closeShare" style="margin-top:8px">ปิด</button></div>`;
   document.body.appendChild(o);
+  const link = SHARE_BASE + (routeId ? '#/r/' + encodeURIComponent(routeId) : '');
+  const brag = `ข้าคือ ${title} • ${ep} ⚡ มาท้าชิงกันไหม! #RunArena`;
+  $('shareCard').addEventListener('click', async () => {
+    const c = /** @type {HTMLCanvasElement} */ ($('sharecanvas'));
+    c.toBlob(async (blob) => {
+      const file = blob ? new File([blob], 'runarena.png', { type: 'image/png' }) : null;
+      try {
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: 'RunArena', text: brag, files: [file] });
+        } else if (navigator.share) {
+          await navigator.share({ title: 'RunArena', text: brag, url: link });
+        } else {
+          if (navigator.clipboard) navigator.clipboard.writeText(brag + ' ' + link).catch(() => {});
+          toast('อุปกรณ์นี้แชร์ตรงไม่ได้ — คัดลอกข้อความให้แล้ว');
+        }
+      } catch { /* user cancelled */ }
+    }, 'image/png');
+  });
   $('dlCard').addEventListener('click', () => {
     const c = /** @type {HTMLCanvasElement} */ ($('sharecanvas'));
     const a = document.createElement('a');
@@ -58,9 +88,8 @@ export function openShare(title, ep, routeName, time, rank) {
     toast('บันทึกการ์ดแล้ว 🎴');
   });
   $('copyBrag').addEventListener('click', () => {
-    const s = `ข้าคือ ${title} • ${ep} ⚡ มาท้าชิงกันไหม! #RunArena`;
-    if (navigator.clipboard) navigator.clipboard.writeText(s).catch(() => {});
-    toast('คัดลอกข้อความขิงแล้ว 📋');
+    if (navigator.clipboard) navigator.clipboard.writeText(brag + ' ' + link).catch(() => {});
+    toast('คัดลอกข้อความ + ลิงก์แล้ว 📋');
   });
   $('closeShare').addEventListener('click', () => closeOverlay('shareOverlay'));
   setTimeout(() => drawCard(title, ep, routeName, time, rank), 50);

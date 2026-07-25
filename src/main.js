@@ -27,6 +27,7 @@ import { startChallenge } from './views/run.js';
 import { openDraw } from './views/draw.js';
 import { openOnboarding } from './views/onboarding.js';
 import { openSettings } from './views/settings.js';
+import { shareArena } from './views/share.js';
 
 /* --------------------------------------------------------------- chrome */
 function topbar() {
@@ -79,8 +80,22 @@ function render() {
   wireSearch();
   // first-run teaching (once)
   if (!st.settings.onboarded && !onboardingShown) { onboardingShown = true; openOnboarding(); }
+  applyDeepLink();
 }
 let onboardingShown = false;
+
+// Open a shared arena link, e.g. .../#/r/<id> or .../#/v/<slug>, once after login.
+let deepLinkApplied = false;
+function applyDeepLink() {
+  if (deepLinkApplied || !getState().user) return;
+  const m = (location.hash || '').match(/^#\/(v|r)\/(.+)$/);
+  if (!m) { deepLinkApplied = true; return; }
+  deepLinkApplied = true;
+  const kind = m[1], id = decodeURIComponent(m[2]);
+  if (kind === 'v') openVenue(id); else openRoute(id);
+}
+// Also react to hash changes while the app is already open (e.g. tapping a link).
+window.addEventListener('hashchange', () => { deepLinkApplied = false; applyDeepLink(); });
 
 function mountMaps() {
   const st = getState();
@@ -171,6 +186,14 @@ const handlers = {
   kudos: (id) => { if (giveKudos(id)) toast('ส่งกำลังใจแล้ว 👊'); },
   duel: (routeId) => { const name = challengeRival(routeId); toast(name ? `⚔️ ท้าดวล ${name} แล้ว! วิ่งให้ชนะเวลาเขา` : 'ยังไม่มีคู่ปรับให้ท้า — คุณอาจเป็นราชาอยู่แล้ว 👑'); },
   openSettings: () => openSettings(),
+  proWaitlist: () => toast('บันทึกความสนใจแล้ว! เราจะแจ้งคุณก่อนใครตอนเปิดตัว Pro ✦'),
+  inviteArena: (id) => {
+    const r = getState().routes.find((x) => x.id === id);
+    shareArena(id, r ? r.name : '').then((res) => {
+      if (res === 'copied') toast('คัดลอกลิงก์ชวนแล้ว 🔗 เอาไปแปะ LINE ได้เลย');
+      else if (res === 'shared') toast('ส่งคำท้าแล้ว 🎉');
+    });
+  },
 };
 
 /* --------------------------------------------------------------- boot */

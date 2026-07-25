@@ -68,7 +68,7 @@ const state = {
   kudosGiven: new Set(),
   duels: /** @type {any[]} */ ([]),
   runs: /** @type {any[]} */ ([]),               // run history log
-  settings: { voice: true, ghostMode: false, onboarded: false },
+  settings: { voice: true, ghostMode: false, onboarded: false, weeklyGoalKm: 20 },
   // derived cache
   routes: buildRoutes([]),
 };
@@ -129,7 +129,7 @@ export function hydrate() {
   state.kudosGiven = new Set(s.kudosGiven ?? []);
   state.duels = s.duels ?? [];
   state.runs = s.runs ?? [];
-  state.settings = { voice: true, ghostMode: false, onboarded: false, ...(s.settings ?? {}) };
+  state.settings = { voice: true, ghostMode: false, onboarded: false, weeklyGoalKm: 20, ...(s.settings ?? {}) };
   state.routes = buildRoutes(state.customRoutes);
 }
 

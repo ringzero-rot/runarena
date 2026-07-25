@@ -68,5 +68,6 @@ export function detailView() {
     <div class="lbhead"><div class="t">อันดับในสนามนี้</div><div class="d">${r.distanceKm.toFixed(2)} กม. • ${st.season === 'week' ? 'สัปดาห์นี้' : 'ตลอดกาล'}</div></div>
     ${rows}
     <button class="btn" style="margin-top:13px" data-action="startChallenge" data-arg="${esc(r.id)}">▶ เริ่มท้าชิงสนามนี้</button>
+    <button class="btn ghost small" style="margin-top:8px" data-action="inviteArena" data-arg="${esc(r.id)}">🔗 ชวนเพื่อนมาท้าชิงสนามนี้</button>
     <div class="hint">วิ่งจริงด้วย GPS หรือจะจำลองก็ได้ • วิ่งแข่งกับ “ผี” ของแชมป์แบบเรียลไทม์</div>`;
 }
