@@ -5,12 +5,23 @@
  */
 import { $, esc } from '../ui/dom.js';
 import { toast } from '../ui/toast.js';
-import { getState, leaderboard, recordResult, addRoute, pushNotif, openRoute, uid } from '../state/store.js';
+import { getState, leaderboard, recordResult, addRoute, pushNotif, openRoute, uid, getSettings } from '../state/store.js';
 import { renderRunMap, dispose } from '../ui/map.js';
 import { GpsRunTracker, SimRunTracker } from '../core/gps.js';
 import { fmt, pace } from '../core/format.js';
 import { epithet, rankTitle } from '../core/epithet.js';
 import { openShare } from './share.js';
+
+/** Voice coach — announces each kilometre + pace (best-effort, off in settings). */
+function speak(text) {
+  try {
+    if (!getSettings().voice || typeof speechSynthesis === 'undefined') return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'th-TH';
+    u.rate = 1;
+    speechSynthesis.speak(u);
+  } catch { /* ignore */ }
+}
 
 let tracker = null;
 
@@ -89,10 +100,16 @@ function beginRun(mode, ctx) {
   o.innerHTML = liveHTML(ctx, mode);
   const mapH = renderRunMap($('runmap'), coords, !!ghostSec);
   const progressPath = [coords[0]];
+  let spokenKm = 0;
+  speak('เริ่มวิ่ง!');
 
   const onTick = (t) => {
     const d = t.km;
     const prog = km > 0 ? Math.min(1, d / km) : 0;
+    if (Math.floor(d) > spokenKm) {           // announce each whole kilometre
+      spokenKm = Math.floor(d);
+      speak(`${spokenKm} กิโลเมตร เพซ ${fmt(t.paceSec)} ต่อกิโลเมตร`);
+    }
     if ($('rKm')) $('rKm').textContent = d.toFixed(2);
     if ($('rTime')) $('rTime').textContent = fmt(t.sec);
     if ($('rPace')) $('rPace').textContent = t.paceSec ? fmt(t.paceSec) : '--:--';
@@ -177,7 +194,7 @@ function finishRun(ctx, summary) {
   }
 
   // Arena result
-  const res = recordResult(route.id, summary.sec, route.distanceKm);
+  const res = recordResult(route.id, summary.sec, route.distanceKm, mode);
   const king = res.rank === 1;
   const kt = king ? rankTitle(1, route.name, uid()) : null;
   const ep = epithet(uid(), route.id);

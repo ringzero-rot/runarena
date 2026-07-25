@@ -1,6 +1,6 @@
 // @ts-check
 import { esc } from '../ui/dom.js';
-import { getState, venues, venueNearest, venueBestRank, venueFavored, levelOf, dailyMissions } from '../state/store.js';
+import { getState, venues, venueNearest, venueBestRank, venueFavored, levelOf, dailyMissions, weeklyStats } from '../state/store.js';
 import { TRACE_PATHS } from '../data/routes.js';
 
 /** Personal dashboard: level + XP, streak/stats, and today's missions. */
@@ -11,6 +11,7 @@ function dashboardHTML() {
   const kings = venues().filter((v) => venueBestRank(v) === 1).length;
   const missions = dailyMissions();
   const doneCount = missions.filter((m) => m.claimed).length;
+  const wk = weeklyStats();
   return `
   <div class="dash">
     <div class="dashtop">
@@ -27,6 +28,7 @@ function dashboardHTML() {
       <div class="ds"><b>🏟️ ${ran}</b><span>สนามที่วิ่ง</span></div>
       <div class="ds"><b>👑 ${kings}</b><span>บัลลังก์</span></div>
     </div>
+    <div class="weekrecap">📅 สัปดาห์นี้ · วิ่ง <b>${wk.runs}</b> ครั้ง · <b>${wk.km.toFixed(1)}</b> กม.</div>
   </div>
   <div class="seg">🎯 ภารกิจวันนี้ <span class="more">${doneCount}/${missions.length} สำเร็จ</span></div>
   <div class="missions">
