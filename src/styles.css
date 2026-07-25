@@ -247,3 +247,15 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
 .picklabel{font-family:var(--disp);font-weight:700;font-size:15px;display:flex;align-items:center}
 .picksub{color:var(--mid);font-size:12px;margin-top:3px}
 .pickgo{color:var(--sunrise);font-family:var(--disp);font-weight:800;font-size:16px}
+
+/* --- mobile-friendly search: sticky bar + hide the rest while typing --- */
+.searchwrap{position:sticky;top:0;z-index:20;background:var(--bg);margin:0 -18px;padding:8px 18px 0}
+.searchwrap .search{margin-bottom:6px}
+.search input[type=search]{-webkit-appearance:none;appearance:none}
+.search input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
+.searchclear{display:none;background:none;border:none;color:var(--dim);font-size:15px;line-height:1;cursor:pointer;padding:2px 4px;margin:-2px -4px -2px 2px}
+.searchclear:hover{color:var(--hi)}
+.searchcount{display:none;color:var(--trace);font-size:11px;font-family:var(--disp);font-weight:600;padding:0 2px 8px}
+.content.searching .home-hide{display:none}
+.content.searching .searchclear{display:inline-block}
+.content.searching .searchcount{display:block}

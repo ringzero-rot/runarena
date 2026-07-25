@@ -91,15 +91,33 @@ function mountMaps() {
   }
 }
 
-/** Live search updates only the list — the map is left untouched (no re-init). */
+/**
+ * Live search updates only the list (input keeps focus). While a query is
+ * present we switch the home into "search mode": the hero, map and banners are
+ * hidden and the sticky search bar + results rise to the top, so on mobile the
+ * filtered results sit right under the search box — above the keyboard.
+ */
+function applySearch() {
+  const input = /** @type {HTMLInputElement} */ ($('searchInput'));
+  if (!input) return;
+  setSearch(input.value);
+  const list = $('routeList');
+  if (list) list.innerHTML = routeListHTML();
+  const searching = input.value.trim().length > 0;
+  const content = $('content');
+  if (content) content.classList.toggle('searching', searching);
+  const count = $('searchCount');
+  if (count) count.textContent = searching && list ? `${list.querySelectorAll('.card').length} สนามที่พบ` : '';
+  if (searching) { if (content) content.scrollTop = 0; }
+  else mountMaps(); // query cleared: home extras shown again — resize the map
+}
+
 function wireSearch() {
   const input = /** @type {HTMLInputElement} */ ($('searchInput'));
   if (!input) return;
-  input.addEventListener('input', () => {
-    setSearch(input.value);
-    const list = $('routeList');
-    if (list) list.innerHTML = routeListHTML();
-  });
+  input.addEventListener('input', applySearch);
+  // reflect an already-active query when re-entering the home view
+  if (input.value.trim().length > 0) applySearch();
 }
 
 /* --------------------------------------------------------------- actions */
@@ -127,6 +145,7 @@ const handlers = {
   tab: (v) => { if (v === 'notifs') markNotificationsRead(); setView(v); },
   openRoute: (id) => openRoute(id),
   openVenue: (slug) => openVenue(slug),
+  clearSearch: () => { const i = /** @type {HTMLInputElement} */ ($('searchInput')); if (i) { i.value = ''; applySearch(); i.focus(); } },
   toggleFav: (id) => { toggleFavorite(id); toast('อัปเดตรายการติดตาม'); },
   toggleVenueFav: (slug) => { const v = venueById(slug); if (v) { toggleVenueFav(v); toast('อัปเดตรายการติดตาม'); } },
   askLocation: () => askLocation(false),
