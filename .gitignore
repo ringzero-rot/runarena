@@ -1,0 +1,16 @@
+# Claude Code local settings (machine-specific)
+.claude/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Python cache from the route-build scripts
+__pycache__/
+*.pyc
+
+# Node (not used, but just in case)
+node_modules/

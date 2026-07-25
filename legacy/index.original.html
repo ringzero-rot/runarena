@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RunArena</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
+  :root{
+    --bg:#0E1014;--surface:#181B22;--surface2:#20242E;--line:#2A2F3A;
+    --hi:#F2F4F7;--mid:#9AA3B2;--dim:#5D6675;
+    --sunrise:#FF5630;--gold:#F5B83D;--trace:#28E0C8;
+    --disp:'Bai Jamjuree',sans-serif;--body:'IBM Plex Sans Thai',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:#06070a;font-family:var(--body);color:var(--hi);display:flex;justify-content:center;min-height:100vh}
+  #app{width:100%;max-width:440px;background:radial-gradient(700px 400px at 50% -8%,#1b1f2a 0,transparent 60%),var(--bg);
+    min-height:100vh;position:relative;display:flex;flex-direction:column;box-shadow:0 0 80px rgba(0,0,0,.5)}
+  ::-webkit-scrollbar{width:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;position:sticky;top:0;z-index:600;
+    background:rgba(14,16,20,.92);backdrop-filter:blur(10px)}
+  .logo{font-family:var(--disp);font-weight:800;font-size:18px}
+  .logo b{color:var(--sunrise)}
+  .topright{display:flex;align-items:center;gap:6px}
+  .streak{font-family:var(--disp);font-weight:700;font-size:12px;color:var(--gold);background:rgba(245,184,61,.12);
+    border:1px solid rgba(245,184,61,.35);border-radius:999px;padding:4px 10px}
+  .bell{position:relative;background:none;border:none;cursor:pointer;color:var(--mid);font-size:19px;padding:4px}
+  .bell .badge{position:absolute;top:-2px;right:-2px;background:var(--sunrise);color:#fff;font-family:var(--disp);
+    font-weight:700;font-size:10px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+  .content{flex:1;overflow-y:auto;padding:0 18px 24px}
+  .eyebrow{font-family:var(--disp);font-weight:600;letter-spacing:.16em;font-size:10px;text-transform:uppercase;color:var(--sunrise)}
+  h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px}
+  .sub{color:var(--mid);font-size:13px;margin-bottom:14px}
+  .seg{font-family:var(--disp);font-weight:600;font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:.1em;margin:18px 2px 10px;display:flex;align-items:center;gap:8px}
+  .seg .more{margin-left:auto;color:var(--trace);font-size:11px;cursor:pointer;text-transform:none;letter-spacing:0}
+  .hint{color:var(--dim);font-size:11px;text-align:center;margin-top:10px;line-height:1.55}
+
+  .search{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:9px}
+  .search input{flex:1;background:none;border:none;outline:none;color:var(--hi);font-family:var(--body);font-size:14px}
+  .search input::placeholder{color:var(--dim)}
+  .locbar{display:flex;align-items:center;gap:7px;margin-bottom:11px;flex-wrap:wrap}
+  .nearchip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,86,48,.12);border:1px solid rgba(255,86,48,.4);
+    color:var(--sunrise);font-family:var(--disp);font-weight:600;font-size:11px;border-radius:999px;padding:5px 11px;cursor:pointer;border-width:1px}
+  .nearchip.ok{background:rgba(40,224,200,.12);border-color:rgba(40,224,200,.4);color:var(--trace)}
+
+  /* ---- real map ---- */
+  #map,#drawmap{width:100%;height:220px;border-radius:18px;border:1px solid var(--line);background:#0d1017;z-index:1}
+  #detailmap{width:100%;height:190px;border-radius:18px 18px 0 0;border:1px solid var(--line);border-bottom:none;background:#0d1017;z-index:1}
+  .leaflet-container{background:#0d1017!important;font-family:var(--body)}
+  .leaflet-control-attribution{background:rgba(7,8,11,.75)!important;color:#5D6675!important;font-size:9px!important}
+  .leaflet-control-attribution a{color:#9AA3B2!important}
+  .leaflet-bar a{background:#181B22!important;color:#F2F4F7!important;border-color:#2A2F3A!important}
+  .maptip{font-size:11px;color:var(--dim);text-align:center;margin-top:7px}
+  .mepin{width:16px;height:16px;border-radius:50%;background:var(--sunrise);border:2px solid #fff;box-shadow:0 0 0 6px rgba(255,86,48,.22)}
+  .runpin{width:14px;height:14px;border-radius:50%;background:var(--trace);border:2px solid #fff;box-shadow:0 0 12px var(--trace)}
+  .ghostpin{width:12px;height:12px;border-radius:50%;background:var(--gold);border:2px solid rgba(255,255,255,.7);opacity:.85}
+  .numpin{width:22px;height:22px;border-radius:50%;background:var(--surface);border:1.5px solid var(--trace);color:var(--trace);
+    font-family:var(--disp);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:17px;padding:13px;margin-bottom:11px;cursor:pointer;
+    transition:.15s;display:flex;gap:12px;align-items:center}
+  .card:hover{border-color:#3a4150;background:var(--surface2)}
+  .card:active{transform:scale(.99)}
+  .thumb{width:58px;height:58px;border-radius:13px;background:#0d1017;border:1px solid var(--line);flex-shrink:0;position:relative;overflow:hidden}
+  .thumb svg{position:absolute;inset:0;width:100%;height:100%}
+  .star{position:absolute;top:4px;right:5px;font-size:14px;cursor:pointer;z-index:2;color:var(--dim);background:none;border:none}
+  .star.on{color:var(--gold)}
+  .cname{font-family:var(--disp);font-weight:600;font-size:14.5px}
+  .crow{display:flex;gap:7px;margin-top:5px;flex-wrap:wrap}
+  .chip{font-size:10.5px;color:var(--mid);background:#0d1017;border:1px solid var(--line);border-radius:8px;padding:3px 7px;font-family:var(--disp);font-weight:500}
+  .chip.fire{color:var(--sunrise);border-color:rgba(255,86,48,.35)}
+  .chip.new{color:var(--trace);border-color:rgba(40,224,200,.4)}
+  .chip.near{color:var(--gold);border-color:rgba(245,184,61,.35)}
+  .myrank{text-align:right;flex-shrink:0;min-width:44px}
+  .myrank .n{font-family:var(--disp);font-weight:800;font-size:19px;color:var(--gold)}
+  .myrank .l{font-size:9px;color:var(--dim);font-family:var(--disp)}
+  .crown-mini{font-size:15px}
+
+  .banner{display:flex;align-items:center;gap:11px;background:linear-gradient(100deg,rgba(255,86,48,.15),rgba(255,86,48,.03));
+    border:1px solid rgba(255,86,48,.4);border-radius:15px;padding:12px;margin-bottom:9px;cursor:pointer}
+  .banner.gold{background:linear-gradient(100deg,rgba(245,184,61,.16),rgba(245,184,61,.03));border-color:rgba(245,184,61,.45)}
+  .pulse{width:9px;height:9px;border-radius:50%;background:var(--sunrise);box-shadow:0 0 0 0 rgba(255,86,48,.6);animation:pl 1.8s infinite;flex-shrink:0}
+  .pulse.g{background:var(--gold);box-shadow:0 0 0 0 rgba(245,184,61,.6)}
+  @keyframes pl{0%{box-shadow:0 0 0 0 rgba(255,86,48,.5)}70%{box-shadow:0 0 0 11px rgba(255,86,48,0)}100%{box-shadow:0 0 0 0 rgba(255,86,48,0)}}
+  .banner b{font-family:var(--disp);font-weight:600;font-size:13px}
+  .banner span{display:block;font-size:11px;color:var(--mid);margin-top:2px}
+
+  .fab{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(100deg,#20242E,#181B22);
+    border:1px dashed #3a4150;border-radius:15px;padding:13px;margin-top:8px;cursor:pointer;color:var(--mid);font-family:var(--disp);font-weight:600;font-size:13px}
+  .fab:hover{border-color:var(--trace);color:var(--trace)}
+
+  .btn{font-family:var(--disp);font-weight:700;font-size:15px;border:none;border-radius:13px;padding:14px;width:100%;cursor:pointer;color:#fff;
+    background:linear-gradient(90deg,var(--sunrise),#ff7a52);display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:none;border:1px solid var(--line);color:var(--mid)}
+  .btn.gold{background:linear-gradient(90deg,var(--gold),#f7cb6b);color:#1a1205}
+  .btn.small{padding:10px;font-size:13px}
+
+  .back{font-family:var(--disp);font-weight:600;font-size:13px;color:var(--mid);background:none;border:none;cursor:pointer;padding:12px 0 6px}
+  .hstats{display:flex;border:1px solid var(--line);border-radius:0 0 18px 18px;overflow:hidden;margin-bottom:13px}
+  .hs{flex:1;padding:11px 6px;text-align:center;border-right:1px solid var(--line)}
+  .hs:last-child{border:none}
+  .hs .v{font-family:var(--disp);font-weight:800;font-size:17px}
+  .hs .v.acc{color:var(--trace)}
+  .hs .k{font-size:9.5px;color:var(--dim);font-family:var(--disp);margin-top:2px}
+
+  .plate{position:relative;border-radius:17px;padding:15px;margin-bottom:13px;overflow:hidden;
+    background:linear-gradient(135deg,#231d10,#1a1710 55%,#15140d);border:1px solid rgba(245,184,61,.45)}
+  .plate::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 42%,rgba(245,184,61,.13) 50%,transparent 58%);
+    background-size:300% 100%;animation:sh 4.5s linear infinite}
+  @keyframes sh{from{background-position:120% 0}to{background-position:-120% 0}}
+  .ptitle{font-family:var(--disp);font-weight:800;font-size:19px;color:var(--gold);position:relative;line-height:1.15}
+  .pep{font-family:var(--disp);font-weight:600;font-size:13px;color:#f7e6b8;margin-top:3px;position:relative}
+  .pwho{display:flex;align-items:center;gap:8px;margin-top:10px;position:relative}
+  .pav{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--sunrise),var(--gold));display:flex;align-items:center;justify-content:center;
+    font-family:var(--disp);font-weight:800;color:#1a1205;font-size:13px}
+  .pname{font-weight:600;font-size:13px}
+  .ptime{margin-left:auto;font-family:var(--disp);font-weight:800;font-size:15px}
+
+  .tabs{display:flex;gap:6px;margin-bottom:11px}
+  .tab{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--mid);font-family:var(--disp);font-weight:600;
+    font-size:12px;border-radius:10px;padding:8px;cursor:pointer}
+  .tab.on{background:rgba(255,86,48,.13);border-color:var(--sunrise);color:var(--sunrise)}
+
+  .lbhead{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 9px}
+  .lbhead .t{font-family:var(--disp);font-weight:600;font-size:14px}
+  .lbhead .d{font-size:11px;color:var(--dim)}
+  .row{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:12px;margin-bottom:6px;background:var(--surface);border:1px solid var(--line)}
+  .row.me{border-color:var(--sunrise);background:rgba(255,86,48,.08)}
+  .row.rival{border-color:rgba(245,184,61,.5)}
+  .rk{font-family:var(--disp);font-weight:800;font-size:15px;width:24px;text-align:center;color:var(--mid)}
+  .av{width:30px;height:30px;border-radius:50%;background:#2a2f3a;display:flex;align-items:center;justify-content:center;
+    font-family:var(--disp);font-weight:600;font-size:12px;color:var(--mid);flex-shrink:0}
+  .who{flex:1;min-width:0}
+  .who .nm{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .who .ep{font-size:10px;color:var(--trace);font-family:var(--disp);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tm{font-family:var(--disp);font-weight:800;font-size:14px;text-align:right}
+  .tm small{display:block;font-weight:500;font-size:9px;color:var(--dim)}
+
+  .ev{background:var(--surface);border:1px solid var(--line);border-radius:17px;overflow:hidden;margin-bottom:12px}
+  .evtop{padding:13px;display:flex;gap:12px;align-items:flex-start}
+  .evdate{width:52px;flex-shrink:0;border-radius:12px;background:#0d1017;border:1px solid var(--line);padding:8px 0;text-align:center}
+  .evdate .d{font-family:var(--disp);font-weight:800;font-size:19px;line-height:1}
+  .evdate .m{font-family:var(--disp);font-weight:600;font-size:10px;color:var(--sunrise);margin-top:2px}
+  .evname{font-family:var(--disp);font-weight:600;font-size:15px;line-height:1.2}
+  .evloc{font-size:11.5px;color:var(--mid);margin-top:3px}
+  .evdates{display:flex;gap:14px;margin-top:7px}
+  .evdates div{font-size:11px;color:var(--mid)}
+  .evdates b{display:block;color:var(--hi);font-family:var(--disp);font-weight:600;font-size:12px}
+  .status{font-size:10px;font-family:var(--disp);font-weight:600;padding:3px 8px;border-radius:7px;display:inline-block;margin-top:7px}
+  .open{color:var(--trace);background:rgba(40,224,200,.1)}
+  .soon{color:var(--gold);background:rgba(245,184,61,.1)}
+  .evbar{display:flex;border-top:1px solid var(--line)}
+  .evbar .x{flex:1;padding:9px;text-align:center;font-size:11px;color:var(--mid);font-family:var(--disp);border-right:1px solid var(--line)}
+  .evbar .x b{display:block;color:var(--hi);font-weight:600;font-size:12px}
+  .evbar .go{flex:1;padding:9px;text-align:center;font-family:var(--disp);font-weight:600;font-size:12px;color:var(--sunrise);cursor:pointer;background:none;border:none}
+
+  .pointbox{background:var(--surface);border:1px solid rgba(245,184,61,.4);border-radius:17px;padding:16px;margin-bottom:13px;text-align:center}
+  .pointbox .k{color:var(--mid);font-size:12px;font-family:var(--disp);font-weight:600}
+  .pointbox .v{color:var(--gold);font-family:var(--disp);font-weight:800;font-size:33px}
+  .rcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:11px}
+  .rhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .ricon{width:34px;height:34px;border-radius:10px;background:rgba(245,184,61,.1);display:flex;align-items:center;justify-content:center;font-size:17px}
+  .rtitle{font-family:var(--disp);font-weight:600;font-size:14px;flex:1}
+  .rdetail{color:var(--mid);font-size:12.5px;line-height:1.5;margin-bottom:9px}
+  .track{height:7px;border-radius:4px;background:#0d1017;overflow:hidden}
+  .fill{height:7px;border-radius:4px;background:var(--gold)}
+  .pct{color:var(--dim);font-size:11px;margin-top:6px}
+  .redeem{margin-top:9px;width:100%;background:rgba(245,184,61,.12);border:1px solid rgba(245,184,61,.4);color:var(--gold);
+    font-family:var(--disp);font-weight:600;font-size:12px;border-radius:10px;padding:9px;cursor:pointer}
+
+  .phead{text-align:center;padding:14px 0}
+  .bigav{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--sunrise),var(--gold));display:inline-flex;
+    align-items:center;justify-content:center;font-family:var(--disp);font-weight:800;font-size:28px;color:#1a1205}
+  .uname{font-family:var(--disp);font-weight:800;font-size:20px;margin-top:10px}
+  .umeta{color:var(--mid);font-size:12px;margin-top:2px}
+  .divchip{display:inline-block;margin-top:8px;font-family:var(--disp);font-weight:700;font-size:11px;border-radius:999px;padding:5px 12px;
+    background:rgba(40,224,200,.12);border:1px solid rgba(40,224,200,.4);color:var(--trace)}
+  .gencard{background:var(--surface);border:1px solid var(--line);border-radius:17px;padding:17px;text-align:center;margin-bottom:13px}
+  .gentitle{font-family:var(--disp);font-weight:800;color:var(--gold);font-size:21px;margin:4px 0}
+  .genep{font-family:var(--disp);font-weight:600;color:#f7e6b8;font-size:15px}
+  .badges{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
+  .bg{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:10px 4px;text-align:center}
+  .bg.off{opacity:.32}
+  .bg .i{font-size:20px}
+  .bg .n{font-family:var(--disp);font-weight:600;font-size:9px;color:var(--mid);margin-top:3px;line-height:1.2}
+  .srcrow{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .srcrow:last-child{border:none}
+  .sbadge{margin-left:auto;font-family:var(--disp);font-weight:600;font-size:10px;padding:3px 8px;border-radius:6px}
+  .linkrow{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:11px;cursor:pointer}
+  .linkrow .t{flex:1;font-family:var(--disp);font-weight:600;font-size:14px}
+
+  .nav{position:sticky;bottom:0;display:flex;background:rgba(14,16,20,.95);backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:600}
+  .nav button{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
+    color:var(--dim);font-family:var(--disp);font-weight:600;font-size:10px;padding:9px 0 11px}
+  .nav button.on{color:var(--sunrise)}
+  .nav .ic{font-size:18px}
+
+  .overlay{position:fixed;inset:0;background:rgba(6,7,10,.78);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;z-index:900}
+  .sheet{width:100%;max-width:440px;background:var(--bg);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:20px 18px 26px;
+    animation:up .28s ease;max-height:92vh;overflow-y:auto}
+  @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  .sheet h2{font-family:var(--disp);font-weight:800;font-size:19px;margin-bottom:4px}
+  .sheet p{color:var(--mid);font-size:13px;line-height:1.55;margin-bottom:13px}
+  .runbig{text-align:center;padding:4px 0 12px}
+  .runbig .num{font-family:var(--disp);font-weight:800;font-size:58px;line-height:1}
+  .runbig .unit{color:var(--mid);font-family:var(--disp);font-size:12px;letter-spacing:2px}
+  .runmetrics{display:flex;gap:9px;margin-bottom:12px}
+  .rm{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:11px 4px;text-align:center}
+  .rm .v{font-family:var(--disp);font-weight:800;font-size:19px}
+  .rm .k{color:var(--dim);font-size:9.5px;margin-top:3px}
+  .ptrack{height:9px;border-radius:5px;background:var(--surface2);overflow:hidden;margin-bottom:9px;position:relative}
+  .pfill{height:9px;background:linear-gradient(90deg,var(--trace),var(--sunrise));width:0%}
+  .gmark{position:absolute;top:-3px;width:3px;height:15px;background:var(--gold);border-radius:2px;left:0%}
+  .ghostbar{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--surface);border:1px solid var(--line);
+    border-radius:12px;padding:10px;margin-bottom:12px;font-family:var(--disp);font-weight:700;font-size:14px}
+  .ghostbar .lead{color:var(--trace)}
+  .ghostbar .behind{color:var(--sunrise)}
+  .resultBadge{text-align:center;padding:4px 0}
+  .resultBadge .rkbig{font-family:var(--disp);font-weight:800;font-size:50px;color:var(--gold);line-height:1.1}
+  .resultBadge .lab{color:var(--mid);font-size:12px}
+  .kingTag{display:inline-block;background:rgba(245,184,61,.15);border:1px solid var(--gold);color:var(--gold);
+    font-family:var(--disp);font-weight:700;font-size:13px;border-radius:999px;padding:6px 14px;margin:8px 0}
+  .verified{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--trace);background:rgba(40,224,200,.1);
+    border:1px solid rgba(40,224,200,.3);border-radius:8px;padding:4px 9px;margin-top:6px;font-family:var(--disp);font-weight:600}
+  .input{width:100%;background:#0d1017;border:1px solid var(--line);border-radius:12px;padding:13px;color:var(--hi);font-size:15px;font-family:var(--body);margin-bottom:11px;outline:none}
+  .comeback{background:rgba(40,224,200,.1);border:1px solid rgba(40,224,200,.4);border-radius:12px;padding:11px;margin:10px 0;font-size:12.5px;color:var(--trace);text-align:center;font-family:var(--disp);font-weight:600}
+  .notif{display:flex;gap:11px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:13px;margin-bottom:9px}
+  .notif.hot{border-color:rgba(255,86,48,.45)}
+  .notif .ni{font-size:18px}
+  .notif .nb{font-size:12.5px;line-height:1.45}
+  .notif .nt{font-size:10px;color:var(--dim);margin-top:3px}
+  .loginwrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:30px 24px}
+  .loginhero{text-align:center;margin-bottom:28px}
+  .loginhero .big{font-family:var(--disp);font-weight:800;font-size:40px}
+  .loginhero .tag{color:var(--mid);font-size:13px;margin-top:8px}
+  .toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);background:#20242E;border:1px solid var(--line);
+    color:var(--hi);font-size:13px;padding:11px 18px;border-radius:12px;z-index:950;opacity:0;transition:.3s;max-width:380px;text-align:center}
+  .toast.show{opacity:1}
+  #sharecanvas{width:100%;border-radius:14px;border:1px solid var(--line);margin-bottom:12px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   RUNARENA — Web App (แผนที่จริง OSM + พิกัดจริง)
+   ครบ requirement 1.1–1.8, 2 + ฟีเจอร์ดึงดูดนักวิ่ง
+   ============================================================ */
+
+/* ---------- ฉายา engine (1.7) ---------- */
+const PREFIX=['ปีศาจ','สายฟ้า','มังกร','พายุ','เงา','นักล่า','จอมพลัง','อสูร','เทพ','ลมกรด','ไอ้เสือ','อัสนี','ราชสีห์','นินจา','พญายม','จอมโจร'];
+const POWER=['ความเร็ว','สายลม','รุ่งอรุณ','ขาแรง','ทะยาน','สายฟ้า','ความอึด','บิดเวลา','เหนือเสียง','ไร้ปราณี','สุดขอบฟ้า','ไม่รู้จบ','พลังจักรวาล','ไฟลุก'];
+const TRAIT=['ไร้เงา','ไม่เคยพ่าย','แห่งราตรี','สะท้านปฐพี','ผู้ไม่หลับใหล','ขาลุย','สายโหด','พันธุ์อึด','หัวใจเหล็ก','ตีนผี'];
+const RANKTITLE={1:['ราชาแห่ง','เจ้าสนาม','จ้าวแห่ง','ผู้พิชิต'],2:['รองราชาแห่ง','มือขวาแห่ง'],3:['ขุนพลแห่ง','นักรบแห่ง']};
+// FNV-1a + avalanche (บิตล่างของ FNV อ่อน ต้องคลุกก่อนเอาไป mod)
+function hash(s){
+  let h=2166136261;
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+  h^=h>>>13;h=Math.imul(h,0x5bd1e995);h^=h>>>15;
+  return h>>>0;
+}
+function pick(a,s){return a[s%a.length]}
+// hash แยกอิสระต่อองค์ประกอบ + ทุกโครงสร้างใช้ครบ 3 ส่วน
+// space = 16 × 14 × 10 × 3 = 6,720 แบบ
+function epithet(uid,rid){
+  const k=uid+'|'+rid;
+  const a=pick(PREFIX,hash(k+'#p')),b=pick(POWER,hash(k+'#w')),c=pick(TRAIT,hash(k+'#t'));
+  const s=hash(k+'#s')%3;
+  const cHasHaeng=c.indexOf('แห่ง')===0;   // กัน "แห่ง" ซ้อนกัน
+  if(s===0||cHasHaeng)return a+b+c;               // ปีศาจความเร็วไร้เงา
+  if(s===1)return a+'แห่ง'+b+c;                   // ปีศาจแห่งความเร็วไร้เงา
+  return a+c+'แห่ง'+b;                            // ปีศาจไร้เงาแห่งความเร็ว
+}
+function rankTitle(rank,name,uid){const p=RANKTITLE[rank];if(!p)return null;return pick(p,hash(uid+name+rank))+name}
+
+/* ---------- geo ---------- */
+function hav(a,b){const R=6371,dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180,
+  la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180;
+  const h=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));}
+function pathKm(c){let d=0;for(let i=1;i<c.length;i++)d+=hav(c[i-1],c[i]);return d}
+function cumDist(c){const out=[0];for(let i=1;i<c.length;i++)out.push(out[i-1]+hav(c[i-1],c[i]));return out}
+function pointAt(c,frac){ // frac 0..1 ตามระยะจริง
+  const cum=cumDist(c),total=cum[cum.length-1],target=total*Math.max(0,Math.min(1,frac));
+  for(let i=1;i<cum.length;i++){
+    if(cum[i]>=target){const seg=cum[i]-cum[i-1],t=seg?(target-cum[i-1])/seg:0;
+      return [c[i-1][0]+(c[i][0]-c[i-1][0])*t, c[i-1][1]+(c[i][1]-c[i-1][1])*t]}
+  }
+  return c[c.length-1];
+}
+
+/* ---------- เส้นทางจริงในกรุงเทพฯ (พิกัดจริง) ---------- */
+const RAW=[
+  {id:'r1',name:'สวนลุมพินี รอบใน',trace:0,runners:312,coords:[
+    [13.73452,100.54050],[13.73471,100.54297],[13.73382,100.54526],[13.73205,100.54690],[13.73002,100.54640],
+    [13.72862,100.54411],[13.72812,100.54133],[13.72964,100.53930],[13.73230,100.53898],[13.73452,100.54050]]},
+  {id:'r2',name:'เลียบเจ้าพระยา (พระราม 8 – สาทร)',trace:1,runners:128,coords:[
+    [13.77450,100.50350],[13.77100,100.50100],[13.76780,100.49880],[13.76420,100.49760],[13.76050,100.49700],
+    [13.75700,100.49610],[13.75350,100.49480],[13.75020,100.49380],[13.74700,100.49290],[13.74380,100.49220],
+    [13.74050,100.49180],[13.73700,100.49150],[13.73350,100.49080],[13.73000,100.49060],[13.72650,100.49130],
+    [13.72300,100.49290],[13.71950,100.49480],[13.71600,100.49700],[13.71300,100.50000],[13.71050,100.50380],
+    [13.70850,100.50800],[13.70700,100.51250]]},
+  {id:'r3',name:'สวนเบญจกิติ ลูปนอก',trace:2,runners:203,coords:[
+    [13.73004,100.55361],[13.73071,100.55964],[13.72803,100.56567],[13.72245,100.56857],[13.71731,100.56589],
+    [13.71553,100.56031],[13.71798,100.55495],[13.72379,100.55227],[13.73004,100.55361]]},
+  {id:'r4',name:'สะพานพระราม 8 ขึ้น-ลง',trace:3,runners:96,coords:[
+    [13.76014,100.50262],[13.76257,100.50064],[13.76500,100.49882],[13.76743,100.49715],[13.76971,100.49547],
+    [13.77169,100.49380],[13.76971,100.49547],[13.76743,100.49715],[13.76500,100.49882],[13.76257,100.50064],[13.76014,100.50262]]},
+  {id:'r5',name:'เกาะรัตนโกสินทร์ Night',trace:1,runners:74,isNew:true,coords:[
+    [13.76398,100.49252],[13.75968,100.48528],[13.75029,100.48125],[13.74143,100.48447],[13.73741,100.49118],
+    [13.74116,100.49924],[13.75029,100.50299],[13.75888,100.50004],[13.76398,100.49252]]},
+  {id:'r6',name:'พุทธมณฑล สาย 4 (ลูปใหญ่)',trace:2,runners:58,coords:[
+    [13.80361,100.30811],[13.80544,100.31681],[13.80269,100.32644],[13.79582,100.33331],[13.78757,100.33468],
+    [13.77978,100.32987],[13.77520,100.32185],[13.77703,100.31246],[13.78367,100.30536],[13.79238,100.30330],[13.80361,100.30811]]},
+];
+
+/* ---------- state ---------- */
+const NPC=[['กฤษณะ พ.','ก'],['อรอุมา ส.','อ'],['ธนา ว.','ธ'],['ปุณยวีร์ ก.','ป'],['Mark T.','M'],['สุชาดา ม.','ส'],['เจษฎา ร.','จ'],['Yuki H.','Y']];
+const TRACE=['M8 50 C25 30 30 45 45 25 S60 12 58 8','M10 10 C20 30 40 25 45 45 S25 55 50 58','M8 30 C30 10 35 50 55 30 S40 8 56 50','M12 55 C18 30 40 40 30 20 S55 18 56 8'];
+function miniTrace(i){return `<svg viewBox="0 0 64 64"><path d="${TRACE[i%4]}" fill="none" stroke="var(--trace)" stroke-width="2.6" stroke-linecap="round" transform="scale(.95) translate(2,2)"/></svg>`}
+
+const BKK=[13.7455,100.5330];
+const state={
+  user:null,view:'home',routeId:null,search:'',season:'all',myDivOnly:false,
+  favorites:new Set(['r1','r2']),
+  results:{},points:1080,streak:4,here:null,locStatus:'idle',
+  routes:RAW.map(r=>({...r,distanceKm:pathKm(r.coords),published:true})),
+  notifications:[
+    {i:'🏟️',b:'สนามใหม่ “เกาะรัตนโกสินทร์ Night” ถูกเปิดโดย @nattapong',t:'5 นาทีที่แล้ว',unread:true},
+    {i:'⚡',b:'ธนา ว. เข้าใกล้เวลาของคุณในสนาม “สวนลุมพินี รอบใน” แค่ 3 วินาที!',t:'2 ชม.ที่แล้ว',unread:true,hot:true},
+  ],
+};
+// ผลตั้งต้น (เคยวิ่งมาแล้ว)
+function seedResults(){
+  ['r1','r2'].forEach(id=>{const t=npcTimes(id);state.results[id]=t[3].sec-2});
+}
+const npcCache={};
+function npcTimes(rid,season){
+  const key=rid+'|'+(season||'all');
+  if(npcCache[key])return npcCache[key];
+  const r=state.routes.find(x=>x.id===rid);
+  const km=r?r.distanceKm:5;
+  const h=hash(key);
+  const arr=NPC.map((n,i)=>{
+    const paceBase=245+((h>>(i%8))%40)+i*11;          // 4:05 – ~6:00 /กม.
+    const wk=season==='week'?(1+((h>>i)%9)/100):1;    // ซีซั่นสัปดาห์ต่างกันเล็กน้อย
+    return {userId:'u'+i,name:n[0],initial:n[1],sec:Math.round(km*paceBase*wk)};
+  });
+  npcCache[key]=arr;return arr;
+}
+
+const EVENTS=[
+  {d:'12',m:'ก.ค.',name:'Bangkok Midnight Run 2026',loc:'สวนเบญจกิติ',dist:'5 / 10 / 21 กม.',reg:'1 มิ.ย.',race:'12 ก.ค.',fee:'650.-',status:'open',url:'https://www.google.com/search?q=Bangkok+Midnight+Run+2026'},
+  {d:'03',m:'ส.ค.',name:'เชียงใหม่ Trail Challenge',loc:'ดอยสุเทพ',dist:'16 / 32 กม.',reg:'15 มิ.ย.',race:'3 ส.ค.',fee:'1,200.-',status:'open',url:'https://www.google.com/search?q=Chiang+Mai+Trail+Challenge'},
+  {d:'21',m:'ก.ย.',name:'Amazing Thailand Marathon',loc:'หัวหิน',dist:'10 / 21 / 42 กม.',reg:'1 ก.ค.',race:'21 ก.ย.',fee:'900.-',status:'soon',url:'https://www.google.com/search?q=Amazing+Thailand+Marathon'},
+  {d:'09',m:'พ.ย.',name:'Khon Kaen Night Run',loc:'บึงแก่นนคร',dist:'5 / 10 กม.',reg:'20 ส.ค.',race:'9 พ.ย.',fee:'500.-',status:'soon',url:'https://www.google.com/search?q=Khon+Kaen+Night+Run'},
+];
+const SPONSORS=[{name:'รองเท้าวิ่งรุ่นใหม่',cost:2400,by:'SpeedGear'},{name:'บัตรกำนัล 500 บาท',cost:800,by:'RunMart'},{name:'ถุงเท้าวิ่ง 3 คู่',cost:300,by:'SockLab'}];
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+function fmt(sec){const m=Math.floor(sec/60),s=Math.round(sec%60);return m+':'+String(s).padStart(2,'0')}
+function pace(sec,km){return km>0?fmt(sec/km):'--:--'}
+function uid(){return state.user?state.user.id:'me'}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2300)}
+function unread(){return state.notifications.filter(n=>n.unread).length}
+function division(pSec){return pSec<270?{n:'เอลีท',c:'var(--sunrise)'}:pSec<330?{n:'ขาแรง',c:'var(--gold)'}:pSec<390?{n:'สายลุย',c:'var(--trace)'}:{n:'สายชิล',c:'var(--mid)'}}
+function myPace(){const ids=Object.keys(state.results);if(!ids.length)return 330;
+  let tot=0,n=0;ids.forEach(id=>{const r=state.routes.find(x=>x.id===id);if(r){tot+=state.results[id]/r.distanceKm;n++}});return n?tot/n:330}
+
+function leaderboard(rid,season){
+  const s=season||state.season;
+  const arr=npcTimes(rid,s).map(x=>({...x}));
+  if(state.results[rid]!=null&&(s==='all'||state.results[rid]))
+    arr.push({userId:uid(),name:state.user.name,initial:state.user.initial,sec:state.results[rid],isMe:true});
+  arr.sort((a,b)=>a.sec-b.sec);
+  arr.forEach((e,i)=>e.rank=i+1);
+  return arr;
+}
+function myRank(rid){const me=leaderboard(rid,'all').find(e=>e.isMe);return me?me.rank:null}
+function distFromMe(r){const from=state.here||BKK;return hav(from,r.coords[0])}
+
+/* ============================================================ RENDER */
+function render(){
+  const app=$('app');
+  if(!state.user){app.innerHTML=loginView();return}
+  app.innerHTML=`${topbar()}<div class="content" id="content">${viewContent()}</div>${nav()}`;
+  mountMaps();
+}
+function topbar(){
+  return `<div class="topbar"><div class="logo">RUN<b>ARENA</b></div>
+    <div class="topright"><span class="streak">🔥 ${state.streak} วัน</span>
+    <button class="bell" onclick="goTab('notifs')">🔔${unread()?`<span class="badge">${unread()}</span>`:''}</button></div></div>`;
+}
+function nav(){
+  const items=[['home','🏟️','สนาม'],['events','📅','ฟีดงานวิ่ง'],['rewards','🏆','รางวัล'],['profile','👤','โปรไฟล์']];
+  return `<div class="nav">${items.map(([v,i,l])=>`<button class="${state.view===v?'on':''}" onclick="goTab('${v}')"><span class="ic">${i}</span>${l}</button>`).join('')}</div>`;
+}
+function viewContent(){
+  switch(state.view){
+    case 'home':return homeView();case 'events':return eventsView();case 'rewards':return rewardsView();
+    case 'profile':return profileView();case 'detail':return detailView();case 'notifs':return notifsView();
+    default:return homeView();}
+}
+
+/* ---------- LOGIN (1.1) ---------- */
+function loginView(){
+  return `<div class="loginwrap">
+    <div class="loginhero"><div class="big">RUN<span style="color:var(--sunrise)">ARENA</span></div>
+    <div class="tag">ทุกเส้นทางคือสนาม • ทุกการวิ่งคือการท้าชิง</div></div>
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px">
+      <div style="color:var(--mid);font-size:12px;font-weight:600;margin-bottom:8px;font-family:var(--disp)">ชื่อที่จะใช้ในสนาม</div>
+      <input class="input" id="loginName" placeholder="เช่น ตี๋ขาแรง" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="btn" onclick="doLogin()">⚡ เข้าสู่สนาม</button>
+      <div class="hint">เดโม: ของจริงต่อ Sign in with Apple / Google / Supabase Auth</div>
+    </div></div>`;
+}
+function doLogin(){
+  const v=($('loginName').value||'').trim()||'นักวิ่ง';
+  state.user={id:'me',name:v,initial:v[0]};
+  seedResults();render();askLocation(true);
+  toast('ยินดีต้อนรับสู่สนาม '+v+'!');
+}
+
+/* ---------- ตำแหน่งจริง (1.2) ---------- */
+function askLocation(silent){
+  if(!navigator.geolocation){state.locStatus='denied';return}
+  state.locStatus='loading';if(!silent)renderHomeOnly();
+  navigator.geolocation.getCurrentPosition(
+    p=>{state.here=[p.coords.latitude,p.coords.longitude];state.locStatus='ok';
+      if(state.view==='home'){render()}toast('พบตำแหน่งคุณแล้ว — เรียงสนามตามระยะใกล้')},
+    ()=>{state.locStatus='denied';if(state.view==='home')renderHomeOnly();
+      if(!silent)toast('ไม่ได้รับสิทธิ์ตำแหน่ง — ใช้กรุงเทพฯ เป็นค่าเริ่มต้น')},
+    {timeout:8000,enableHighAccuracy:true});
+}
+
+/* ---------- HOME (1.2, 1.4) ---------- */
+function homeView(){
+  const q=state.search.trim();
+  const list=state.routes.filter(r=>!q||r.name.includes(q)).slice().sort((a,b)=>distFromMe(a)-distFromMe(b));
+  const fav=list.filter(r=>state.favorites.has(r.id)),oth=list.filter(r=>!state.favorites.has(r.id));
+  const defended=state.routes.filter(r=>myRank(r.id)===1);
+  const locTxt=state.locStatus==='ok'?'⌖ ใช้ตำแหน่งจริงของคุณ':state.locStatus==='loading'?'⌖ กำลังหาตำแหน่ง…':'⌖ แตะเพื่อใช้ตำแหน่งจริง';
+  return `
+    <div class="eyebrow">สนามใกล้ตัว</div><h1 class="title">สนามของคุณ</h1>
+    <div class="sub">ค้นหา route ที่อยากท้าชิง แล้วออกไปวิ่งจับเวลา</div>
+    <div class="search">🔎<input placeholder="ค้นหาสนาม / route…" value="${state.search}" oninput="onSearch(this.value)"></div>
+    <div class="locbar">
+      <span class="nearchip ${state.locStatus==='ok'?'ok':''}" onclick="askLocation()">${locTxt}</span>
+      <span class="chip">เรียงตามใกล้สุด</span>
+    </div>
+    <div id="map"></div>
+    <div class="maptip">แผนที่จริงจาก OpenStreetMap • เส้นสีฟ้าคือ route จริง แตะเส้นเพื่อเปิดสนาม</div>
+    <div class="fab" onclick="openDraw()">＋ วาด route ใหม่บนแผนที่ (เปิดสนามท้าชิง)</div>
+    ${defended.length?`<div class="banner gold" onclick="openRoute('${defended[0].id}')"><span class="pulse g"></span>
+      <div><b>👑 คุณครองบัลลังก์ ${defended.length} สนาม</b><span>ป้องกันไว้ให้ได้ถึงสิ้น quarter เพื่อรับเสื้อ King of</span></div></div>`:''}
+    <div class="banner" onclick="goTab('notifs')"><span class="pulse"></span>
+      <div><b>มีความเคลื่อนไหวในสนาม</b><span>ดูว่าใครมาท้าชิง / ใครใกล้แซงคุณแล้ว</span></div></div>
+    ${fav.length?`<div class="seg">★ ที่คุณติดตาม</div>${fav.map(routeCard).join('')}`:''}
+    <div class="seg">สนามใกล้คุณ</div>
+    ${oth.length?oth.map(routeCard).join(''):'<div class="hint">ไม่พบสนามที่ค้นหา</div>'}
+  `;
+}
+function routeCard(r){
+  const rank=myRank(r.id),d=distFromMe(r);
+  return `<div class="card" onclick="openRoute('${r.id}')">
+    <div class="thumb">${miniTrace(r.trace)}
+      <button class="star ${state.favorites.has(r.id)?'on':''}" onclick="event.stopPropagation();toggleFav('${r.id}')">${state.favorites.has(r.id)?'★':'☆'}</button></div>
+    <div style="flex:1;min-width:0">
+      <div class="cname">${r.name}</div>
+      <div class="crow">
+        <span class="chip fire">⚑ ${r.distanceKm.toFixed(2)} กม.</span>
+        <span class="chip near">${d<1?Math.round(d*1000)+' ม.':d.toFixed(1)+' กม.'} จากคุณ</span>
+        <span class="chip">${r.runners} คน</span>
+        ${r.isNew?'<span class="chip new">ใหม่</span>':''}
+      </div></div>
+    <div class="myrank">${rank===1?'<div class="crown-mini">👑</div><div class="l">ราชา</div>':
+      rank?`<div class="n">#${rank}</div><div class="l">อันดับคุณ</div>`:'<div class="n" style="color:var(--dim)">—</div><div class="l">ยังไม่ลง</div>'}</div>
+  </div>`;
+}
+function onSearch(v){state.search=v;renderHomeOnly()}
+function renderHomeOnly(){const c=$('content');if(!c)return;const a=document.activeElement,p=a&&a.selectionStart;
+  c.innerHTML=homeView();mountMaps();const i=c.querySelector('.search input');if(i&&a&&a.tagName==='INPUT'){i.focus();try{i.setSelectionRange(p,p)}catch(e){}}}
+function toggleFav(id){state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);
+  state.view==='home'?renderHomeOnly():render();toast('อัปเดตรายการติดตาม')}
+
+/* ---------- MAPS (Leaflet + OSM) ---------- */
+let mapMain=null,mapDetail=null,mapDraw=null;
+const TILE='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILEOPT={maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'};
+function hasLeaflet(){return typeof L!=='undefined'}
+function icon(cls,size){return L.divIcon({className:'',html:`<div class="${cls}"></div>`,iconSize:[size,size],iconAnchor:[size/2,size/2]})}
+
+function mountMaps(){
+  if(!hasLeaflet())return;
+  if($('map')){
+    if(mapMain){mapMain.remove();mapMain=null}
+    mapMain=L.map('map',{zoomControl:false,attributionControl:true}).setView(state.here||BKK,12);
+    L.tileLayer(TILE,TILEOPT).addTo(mapMain);
+    L.control.zoom({position:'bottomright'}).addTo(mapMain);
+    const group=[];
+    state.routes.forEach(r=>{
+      const king=myRank(r.id)===1;
+      const line=L.polyline(r.coords,{color:king?'#F5B83D':'#28E0C8',weight:king?5:4,opacity:.9}).addTo(mapMain);
+      line.on('click',()=>openRoute(r.id));
+      line.bindTooltip(`${r.name} • ${r.distanceKm.toFixed(2)} กม.`,{direction:'top'});
+      L.marker(r.coords[0],{icon:icon('numpin',22)}).addTo(mapMain).on('click',()=>openRoute(r.id))
+        .bindTooltip(r.name,{direction:'top'});
+      group.push(line);
+    });
+    if(state.here)L.marker(state.here,{icon:icon('mepin',16)}).addTo(mapMain).bindTooltip('คุณอยู่ตรงนี้');
+    try{const fg=L.featureGroup(group);mapMain.fitBounds(fg.getBounds().pad(.15))}catch(e){}
+  }
+  if($('detailmap')&&state.routeId){
+    if(mapDetail){mapDetail.remove();mapDetail=null}
+    const r=state.routes.find(x=>x.id===state.routeId);
+    mapDetail=L.map('detailmap',{zoomControl:false,attributionControl:true});
+    L.tileLayer(TILE,TILEOPT).addTo(mapDetail);
+    const line=L.polyline(r.coords,{color:'#28E0C8',weight:5,opacity:.95}).addTo(mapDetail);
+    L.circleMarker(r.coords[0],{radius:6,color:'#28E0C8',fillColor:'#28E0C8',fillOpacity:1}).addTo(mapDetail).bindTooltip('จุดเริ่ม');
+    L.circleMarker(r.coords[r.coords.length-1],{radius:6,color:'#FF5630',fillColor:'#FF5630',fillOpacity:1}).addTo(mapDetail).bindTooltip('เส้นชัย');
+    mapDetail.fitBounds(line.getBounds().pad(.12));
+  }
+}
+
+/* ---------- วาด route ใหม่บนแผนที่จริง (1.3.2) ---------- */
+let drawPts=[],drawLine=null;
+function openDraw(){
+  drawPts=[];
+  const o=document.createElement('div');o.className='overlay';o.id='drawOverlay';
+  o.innerHTML=`<div class="sheet">
+    <div class="eyebrow">เปิดสนามใหม่</div><h2>วาดเส้นทางบนแผนที่จริง</h2>
+    <p>แตะบนแผนที่เพื่อปักจุดเส้นทางที่คุณวิ่ง ระบบจะคำนวณระยะจริงจากพิกัดให้อัตโนมัติ</p>
+    <div id="drawmap" style="height:260px;margin-bottom:10px"></div>
+    <div class="runmetrics">
+      <div class="rm"><div class="v" id="dKm">0.00</div><div class="k">ระยะจริง (กม.)</div></div>
+      <div class="rm"><div class="v" id="dPts">0</div><div class="k">จุดที่ปัก</div></div>
+    </div>
+    <button class="btn" onclick="finishDraw()">▶ วิ่งเส้นทางนี้เลย</button>
+    <button class="btn ghost small" style="margin-top:8px" onclick="undoDraw()">↶ ลบจุดล่าสุด</button>
+    <button class="btn ghost small" style="margin-top:8px" onclick="closeOverlay('drawOverlay')">ยกเลิก</button>
+  </div>`;
+  document.body.appendChild(o);
+  if(!hasLeaflet()){toast('แผนที่โหลดไม่ได้ ลองเชื่อมเน็ตแล้วรีเฟรช');return}
+  setTimeout(()=>{
+    mapDraw=L.map('drawmap',{zoomControl:true}).setView(state.here||BKK,15);
+    L.tileLayer(TILE,TILEOPT).addTo(mapDraw);
+    if(state.here)L.marker(state.here,{icon:icon('mepin',16)}).addTo(mapDraw);
+    mapDraw.on('click',e=>{
+      drawPts.push([e.latlng.lat,e.latlng.lng]);
+      if(drawLine)mapDraw.removeLayer(drawLine);
+      drawLine=L.polyline(drawPts,{color:'#FF5630',weight:5}).addTo(mapDraw);
+      L.circleMarker([e.latlng.lat,e.latlng.lng],{radius:4,color:'#FF5630',fillOpacity:1}).addTo(mapDraw);
+      $('dKm').textContent=pathKm(drawPts).toFixed(2);$('dPts').textContent=drawPts.length;
+    });
+  },60);
+}
+function undoDraw(){if(!drawPts.length)return;drawPts.pop();
+  if(drawLine)mapDraw.removeLayer(drawLine);
+  drawLine=drawPts.length>1?L.polyline(drawPts,{color:'#FF5630',weight:5}).addTo(mapDraw):null;
+  $('dKm').textContent=pathKm(drawPts).toFixed(2);$('dPts').textContent=drawPts.length}
+function finishDraw(){
+  if(drawPts.length<2){toast('ปักอย่างน้อย 2 จุดก่อนนะ');return}
+  const km=pathKm(drawPts);
+  if(km<0.3){toast('เส้นทางสั้นเกินไป (ขั้นต่ำ 300 ม.)');return}
+  const pts=drawPts.slice();
+  closeOverlay('drawOverlay');
+  runSim(null,{coords:pts,km});
+}
+function closeOverlay(id){const o=$(id);if(o){if(o._timer)clearInterval(o._timer);o.remove()}}
+
+/* ---------- ROUTE DETAIL + LEADERBOARD (1.5–1.7) ---------- */
+function openRoute(id){state.routeId=id;state.view='detail';render()}
+function detailView(){
+  const r=state.routes.find(x=>x.id===state.routeId);
+  const lb=leaderboard(r.id);
+  const king=lb[0],kt=rankTitle(1,r.name,king.userId);
+  const myBest=state.results[r.id],meRank=myRank(r.id);
+  const myP=myBest?myBest/r.distanceKm:null;
+  const shown=state.myDivOnly&&myP?lb.filter(e=>division(e.sec/r.distanceKm).n===division(myP).n):lb;
+  const me=lb.find(e=>e.isMe);
+  const rivalIdx=me?lb.findIndex(e=>e.rank===me.rank-1):-1;
+  const rival=rivalIdx>=0?lb[rivalIdx]:null;
+  return `
+    <button class="back" onclick="goTab('home')">← กลับไปที่สนาม</button>
+    <h1 class="title" style="font-size:21px">${r.name}</h1>
+    <div id="detailmap"></div>
+    <div class="hstats">
+      <div class="hs"><div class="v acc">${r.distanceKm.toFixed(2)}</div><div class="k">ระยะจริง (กม.)</div></div>
+      <div class="hs"><div class="v">${r.runners}</div><div class="k">นักวิ่งในสนาม</div></div>
+      <div class="hs"><div class="v">${myBest?fmt(myBest):'—'}</div><div class="k">สถิติของคุณ</div></div>
+      <div class="hs"><div class="v">${myBest?pace(myBest,r.distanceKm):'—'}</div><div class="k">เพซ /กม.</div></div>
+    </div>
+    <div class="plate">
+      <div style="font-size:20px">👑</div>
+      <div class="ptitle">${kt}</div>
+      <div class="pep">${epithet(king.userId,r.id)}</div>
+      <div class="pwho"><div class="pav">${king.initial}</div>
+        <div class="pname">${king.name}${king.isMe?' (คุณ)':''}</div>
+        <div class="ptime">${fmt(king.sec)}</div></div>
+    </div>
+    ${rival?`<div class="banner" onclick="startChallenge('${r.id}')"><span class="pulse"></span>
+      <div><b>คู่ปรับของคุณ: ${rival.name}</b><span>เร็วกว่าคุณแค่ ${Math.max(1,Math.round(me.sec-rival.sec))} วินาที — แซงได้ในรอบหน้า!</span></div></div>`:''}
+    <div class="tabs">
+      <button class="tab ${state.season==='all'?'on':''}" onclick="setSeason('all')">🏆 ตลอดกาล</button>
+      <button class="tab ${state.season==='week'?'on':''}" onclick="setSeason('week')">📅 ซีซั่นสัปดาห์นี้</button>
+    </div>
+    <div class="tabs">
+      <button class="tab ${!state.myDivOnly?'on':''}" onclick="setDiv(false)">ทุกคน</button>
+      <button class="tab ${state.myDivOnly?'on':''}" onclick="setDiv(true)">ดิวิชั่นของฉัน</button>
+    </div>
+    <div class="lbhead"><div class="t">อันดับในสนามนี้</div><div class="d">${r.distanceKm.toFixed(2)} กม. • ${state.season==='week'?'สัปดาห์นี้':'ตลอดกาล'}</div></div>
+    ${shown.map(e=>{const dv=division(e.sec/r.distanceKm);
+      return `<div class="row ${e.isMe?'me':''} ${rival&&e.userId===rival.userId?'rival':''}">
+        <div class="rk" style="${e.rank<=3?'color:var(--gold)':''}">${e.rank}</div>
+        <div class="av">${e.initial}</div>
+        <div class="who"><div class="nm">${e.name}${e.isMe?' (คุณ)':''} <span style="color:${dv.c};font-size:10px">• ${dv.n}</span></div>
+          <div class="ep">${epithet(e.userId,r.id)}</div></div>
+        <div class="tm">${fmt(e.sec)}<small>${pace(e.sec,r.distanceKm)}/กม.</small></div>
+      </div>`}).join('')}
+    <button class="btn" style="margin-top:13px" onclick="startChallenge('${r.id}')">▶ เริ่มท้าชิงสนามนี้</button>
+    <div class="hint">เดโม: จำลองการวิ่งบนเส้นทางจริง + วิ่งแข่งกับ “ผี” ของแชมป์แบบเรียลไทม์</div>`;
+}
+function setSeason(s){state.season=s;render()}
+function setDiv(v){state.myDivOnly=v;render()}
+
+/* ---------- RUN + GHOST RACE (1.5, 1.6) ---------- */
+function startChallenge(rid){runSim(rid,null)}
+
+function runSim(rid,newRoute){
+  const route=rid?state.routes.find(x=>x.id===rid):null;
+  const coords=newRoute?newRoute.coords:route.coords;
+  const km=newRoute?newRoute.km:route.distanceKm;
+  const paceSec=250+Math.floor(Math.random()*110);
+  const finalSec=Math.round(km*paceSec);
+  const ghost=route?leaderboard(route.id,'all')[0]:null;
+  const ghostSec=ghost?ghost.sec:null;
+  const ticks=90;let t=0;
+  const o=document.createElement('div');o.className='overlay';o.id='runOverlay';
+  o.innerHTML=`<div class="sheet">
+    <div class="eyebrow">${newRoute?'กำลังเปิดเส้นทางใหม่':'กำลังท้าชิง'}</div>
+    <h2>${newRoute?'วิ่งเส้นทางใหม่ของคุณ':route.name}</h2>
+    <p>📡 นาฬิกากำลังจับ track — ระบบดึงผลเข้าแอปอัตโนมัติเมื่อจบ</p>
+    <div id="runmap" style="height:180px;border-radius:14px;border:1px solid var(--line);margin-bottom:12px"></div>
+    ${ghostSec?`<div class="ghostbar" id="ghostbar">🏃 กำลังไล่ผีของแชมป์…</div>`:''}
+    <div class="runbig"><div class="num" id="rKm">0.00</div><div class="unit">กิโลเมตร</div></div>
+    <div class="ptrack"><div class="pfill" id="pfill"></div>${ghostSec?'<div class="gmark" id="gmark"></div>':''}</div>
+    <div class="runmetrics">
+      <div class="rm"><div class="v" id="rTime">0:00</div><div class="k">เวลา</div></div>
+      <div class="rm"><div class="v" style="color:var(--trace)" id="rPace">--:--</div><div class="k">เพซ /กม.</div></div>
+      <div class="rm"><div class="v" style="color:var(--gold)" id="rLeft">${km.toFixed(2)}</div><div class="k">เหลือ (กม.)</div></div>
+    </div>
+    <button class="btn ghost" onclick="closeOverlay('runOverlay')">ยกเลิก</button></div>`;
+  document.body.appendChild(o);
+
+  let runMap=null,meM=null,ghM=null;
+  if(hasLeaflet())setTimeout(()=>{
+    runMap=L.map('runmap',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false});
+    L.tileLayer(TILE,TILEOPT).addTo(runMap);
+    const ln=L.polyline(coords,{color:'#2A2F3A',weight:6}).addTo(runMap);
+    o._prog=L.polyline([coords[0]],{color:'#28E0C8',weight:6}).addTo(runMap);
+    meM=L.marker(coords[0],{icon:icon('runpin',14)}).addTo(runMap);
+    if(ghostSec)ghM=L.marker(coords[0],{icon:icon('ghostpin',12)}).addTo(runMap);
+    runMap.fitBounds(ln.getBounds().pad(.12));
+    o._me=meM;o._gh=ghM;o._coords=coords;
+  },60);
+
+  o._timer=setInterval(()=>{
+    t++;const p=t/ticks,sec=finalSec*p,d=km*p;
+    $('rKm').textContent=d.toFixed(2);$('rTime').textContent=fmt(sec);
+    $('rPace').textContent=fmt(paceSec);$('rLeft').textContent=Math.max(0,km-d).toFixed(2);
+    $('pfill').style.width=(p*100)+'%';
+    if(ghostSec){
+      const gp=Math.min(1,sec/ghostSec);
+      const gm=$('gmark');if(gm)gm.style.left=(gp*100)+'%';
+      const gapKm=(d-km*gp);const gapSec=Math.round(gapKm*paceSec);
+      const gb=$('ghostbar');
+      if(gb)gb.innerHTML=gapSec>=0?`🏃 <span class="lead">นำผีแชมป์ ${Math.abs(gapSec)} วิ</span>`:`👻 <span class="behind">ตามหลังแชมป์ ${Math.abs(gapSec)} วิ</span>`;
+      if(o._gh&&o._coords)o._gh.setLatLng(pointAt(o._coords,gp));
+    }
+    if(o._me&&o._coords){const pos=pointAt(o._coords,p);o._me.setLatLng(pos);
+      if(o._prog)o._prog.setLatLngs(coords.slice(0,Math.max(2,Math.ceil(coords.length*p))).concat([pos]));}
+    if(t>=ticks){clearInterval(o._timer);finishRun(rid,newRoute,km,finalSec)}
+  },40);
+}
+
+function finishRun(rid,newRoute,km,sec){
+  const o=$('runOverlay');
+  if(newRoute){
+    o.innerHTML=`<div class="sheet">
+      <div class="eyebrow">ตรวจพบเส้นทางใหม่</div><h2>🆕 route นี้ยังไม่มีในระบบ</h2>
+      <p>คุณเพิ่งวิ่ง ${km.toFixed(2)} กม. บนเส้นทางที่ยังไม่เคยมีใครเปิด — ประกาศเป็น “สนาม Challenge” ให้คนอื่นมาท้าชิงไหม? ถ้าอนุมัติ ระบบจะ publish ขึ้นฐานข้อมูลและแจ้งเตือนผู้ใช้ทุกคน</p>
+      <input class="input" id="newName" placeholder="ตั้งชื่อสนาม เช่น เลียบคลองวิ่งยามเช้า">
+      <button class="btn gold" onclick='announceRoute(${JSON.stringify(newRoute.coords)},${km},${sec})'>📢 ประกาศ & เปิดสนาม</button>
+      <button class="btn ghost small" style="margin-top:8px" onclick="closeOverlay('runOverlay')">ไว้ก่อน เก็บเป็นส่วนตัว</button></div>`;
+    return;
+  }
+  const route=state.routes.find(x=>x.id===rid);
+  const prev=myRank(rid),best=state.results[rid];
+  const isBest=best==null||sec<best;
+  if(isBest)state.results[rid]=sec;
+  const rank=myRank(rid),king=rank===1;
+  const improved=prev?prev-rank:null;
+  const kt=king?rankTitle(1,route.name,uid()):null;
+  const ep=epithet(uid(),rid);
+  const gained=king?120:(rank<=3?80:40);
+  state.points+=gained;state.streak++;
+  if(king){pushNotif('👑',`คุณคือ ${kt} คนใหม่! เวลา ${fmt(sec)}`);
+    setTimeout(()=>{pushNotif('⚔️','มีคนกำลังไล่บัลลังก์คุณในสนามนี้ — รีบไปป้องกัน!',false,true);if(state.view!=='notifs')toast('⚔️ มีคนไล่บัลลังก์คุณแล้ว!')},14000);}
+  else pushNotif('🏁',`จบ challenge ${route.name} — อันดับ #${rank}`);
+
+  o.innerHTML=`<div class="sheet">
+    <div class="resultBadge">
+      <div class="eyebrow">ผลถูกดึงเข้าแอปแล้ว</div>
+      <div class="rkbig">#${rank}</div>
+      <div class="lab">จาก ${route.runners} คน • ${fmt(sec)} • ${pace(sec,km)}/กม. • +${gained} พอยต์</div>
+      <div class="verified">✓ ตรวจสอบแล้ว: เพซสม่ำเสมอ GPS ต่อเนื่อง</div>
+      ${king?`<div class="kingTag">👑 ${kt}</div>`:''}
+      <div style="font-family:var(--disp);font-weight:600;color:#f7e6b8;margin-top:6px">${ep}</div>
+    </div>
+    ${improved&&improved>=5?`<div class="comeback">🔥 พุ่งขึ้น ${improved} อันดับ! เข้าเงื่อนไข Comeback Reward</div>`:''}
+    ${!isBest?`<div class="hint">ครั้งนี้ช้ากว่าสถิติเดิม (${fmt(best)}) — อันดับยึดเวลาที่ดีที่สุด</div>`:''}
+    <button class="btn gold" style="margin-top:10px" onclick='openShare(${JSON.stringify(kt||("อันดับ #"+rank+" แห่ง"+route.name))},${JSON.stringify(ep)},${JSON.stringify(route.name)},${JSON.stringify(fmt(sec))},${rank})'>🎴 สร้างการ์ดขิงเพื่อน</button>
+    <button class="btn" style="margin-top:8px" onclick="closeOverlay('runOverlay');render()">ดูอันดับในสนาม</button></div>`;
+}
+
+function announceRoute(coords,km,sec){
+  const name=($('newName')&&$('newName').value.trim())||('สนามใหม่ '+km.toFixed(1)+'K');
+  const id='r'+Date.now();
+  state.routes.unshift({id,name,distanceKm:km,coords,runners:1,trace:Math.floor(Math.random()*4),published:true,isNew:true});
+  state.results[id]=sec;state.favorites.add(id);state.points+=150;
+  pushNotif('🏟️',`สนามใหม่ “${name}” ถูกเปิดแล้ว! (โดยคุณ) — ท้าชิงเลย`,true);
+  closeOverlay('runOverlay');toast('ประกาศสนามสำเร็จ! แจ้งเตือนผู้ใช้ทุกคนแล้ว 📣');
+  openRoute(id);
+}
+function pushNotif(i,b,broadcast,hot){state.notifications.unshift({i,b:(broadcast?'📣 [ส่งถึงผู้ใช้ทุกคน] ':'')+b,t:'เมื่อสักครู่',unread:true,hot})}
+
+/* ---------- การ์ดขิงเพื่อน (viral loop) ---------- */
+function openShare(title,ep,routeName,time,rank){
+  closeOverlay('runOverlay');
+  const o=document.createElement('div');o.className='overlay';o.id='shareOverlay';
+  o.innerHTML=`<div class="sheet"><div class="eyebrow">ขิงเพื่อน</div><h2>การ์ดฉายาของคุณ</h2>
+    <canvas id="sharecanvas" width="800" height="1000"></canvas>
+    <button class="btn gold" onclick="downloadCard()">⬇ บันทึกรูปไปโพสต์</button>
+    <button class="btn ghost small" style="margin-top:8px" onclick="copyBrag(${JSON.stringify(title)},${JSON.stringify(ep)})">📋 คัดลอกข้อความขิง</button>
+    <button class="btn ghost small" style="margin-top:8px" onclick="closeOverlay('shareOverlay')">ปิด</button></div>`;
+  document.body.appendChild(o);
+  setTimeout(()=>drawCard(title,ep,routeName,time,rank),50);
+}
+function drawCard(title,ep,routeName,time,rank){
+  const c=$('sharecanvas');if(!c)return;const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,800,1000);g.addColorStop(0,'#231d10');g.addColorStop(.55,'#15140d');g.addColorStop(1,'#0E1014');
+  x.fillStyle=g;x.fillRect(0,0,800,1000);
+  x.strokeStyle='rgba(245,184,61,.5)';x.lineWidth=6;x.strokeRect(20,20,760,960);
+  x.textAlign='center';
+  x.fillStyle='#F5B83D';x.font='700 130px sans-serif';x.fillText('👑',400,190);
+  x.font='800 44px sans-serif';x.fillStyle='#F5B83D';
+  wrap(x,title,400,290,700,54);
+  x.font='600 34px sans-serif';x.fillStyle='#f7e6b8';x.fillText(ep,400,430);
+  x.strokeStyle='rgba(245,184,61,.35)';x.lineWidth=2;x.beginPath();x.moveTo(120,480);x.lineTo(680,480);x.stroke();
+  x.fillStyle='#9AA3B2';x.font='500 26px sans-serif';x.fillText(routeName,400,540);
+  x.fillStyle='#F2F4F7';x.font='800 120px sans-serif';x.fillText(time,400,680);
+  x.fillStyle='#9AA3B2';x.font='500 24px sans-serif';x.fillText('อันดับ #'+rank+' ของสนาม',400,730);
+  x.fillStyle='#FF5630';x.font='800 34px sans-serif';x.fillText('RUNARENA',400,900);
+  x.fillStyle='#5D6675';x.font='500 22px sans-serif';x.fillText('มาท้าชิงกันไหม?',400,940);
+}
+function wrap(x,txt,cx,cy,max,lh){
+  const w=txt.split('');let line='',lines=[];
+  w.forEach(ch=>{const t=line+ch;if(x.measureText(t).width>max){lines.push(line);line=ch}else line=t});
+  lines.push(line);lines.forEach((l,i)=>x.fillText(l,cx,cy+i*lh));
+}
+function downloadCard(){const c=$('sharecanvas');if(!c)return;
+  const a=document.createElement('a');a.download='runarena-card.png';a.href=c.toDataURL('image/png');a.click();toast('บันทึกการ์ดแล้ว 🎴')}
+function copyBrag(t,e){const s=`ข้าคือ ${t} • ${e} ⚡ มาท้าชิงกันไหม! #RunArena`;
+  if(navigator.clipboard)navigator.clipboard.writeText(s).catch(()=>{});toast('คัดลอกข้อความขิงแล้ว 📋')}
+
+/* ---------- NOTIFS ---------- */
+function notifsView(){
+  state.notifications.forEach(n=>n.unread=false);
+  return `<button class="back" onclick="goTab('home')">← กลับ</button>
+    <h1 class="title">การแจ้งเตือน</h1><div class="sub">สนามใหม่ การถูกไล่แซง และผลท้าชิง</div>
+    ${state.notifications.map(n=>`<div class="notif ${n.hot?'hot':''}"><div class="ni">${n.i}</div>
+      <div><div class="nb">${n.b}</div><div class="nt">${n.t}</div></div></div>`).join('')}`;
+}
+
+/* ---------- EVENTS (2) ---------- */
+function eventsView(){
+  return `<div class="eyebrow">อัปเดตทั่วไทย</div><h1 class="title">ฟีดงานวิ่ง</h1>
+    <div class="sub">งานที่เปิดรับสมัครและใกล้จัด — ดูวันสมัคร/วันวิ่ง แล้วกดไปหน้าสมัคร</div>
+    ${EVENTS.map(e=>`<div class="ev"><div class="evtop">
+      <div class="evdate"><div class="d">${e.d}</div><div class="m">${e.m}</div></div>
+      <div style="flex:1"><div class="evname">${e.name}</div><div class="evloc">${e.loc} • ${e.dist}</div>
+        <div class="evdates"><div>เปิดรับสมัคร<b>${e.reg}</b></div><div>วันวิ่ง<b>${e.race}</b></div></div>
+        <span class="status ${e.status}">${e.status==='open'?'● เปิดรับสมัครแล้ว':'● ใกล้เปิดรับสมัคร'}</span></div></div>
+      <div class="evbar"><div class="x">ค่าสมัครเริ่ม<b>${e.fee}</b></div>
+        <button class="go" onclick="window.open('${e.url}','_blank')">ดูรายละเอียด ↗</button></div></div>`).join('')}
+    <div class="hint">เดโม: ของจริงดึงฟีดจากผู้จัด/เพจงานวิ่ง แล้วลิงก์ไปเว็บปลายทาง</div>`;
+}
+
+/* ---------- REWARDS (1.8) ---------- */
+function rewardsView(){
+  const kings=state.routes.filter(r=>myRank(r.id)===1);
+  const elig=kings.filter(r=>[10,21,42].some(d=>Math.abs(r.distanceKm-d)<2));
+  const shirtP=elig.length?.62:.2;
+  return `<div class="eyebrow">แรงจูงใจให้วิ่งต่อ</div><h1 class="title">รางวัล & สิทธิประโยชน์</h1>
+    <div class="sub">ทั้งของเราเองและจากสปอนเซอร์ — ให้สิทธิ์คนตั้งใจวิ่งจริง</div>
+    <div class="pointbox"><div class="k">พอยต์สะสมของคุณ</div><div class="v">${state.points.toLocaleString()}</div>
+      <div class="k" style="margin-top:6px">🔥 วิ่งต่อเนื่อง ${state.streak} วัน • ครองบัลลังก์ ${kings.length} สนาม</div></div>
+    <div class="seg">🏅 รางวัลของเราเอง</div>
+    <div class="rcard"><div class="rhead"><div class="ricon">👕</div><div class="rtitle">เสื้อ King of (ลายเฉพาะสนาม)</div></div>
+      <div class="rdetail">ครองอันดับ 1 ครบ 1 quarter ที่ระยะ 10 / 21 / 42 กม. ${elig.length?`<span style="color:var(--gold)">— คุณเป็น King ของ ${elig.length} สนามที่เข้าเงื่อนไข!</span>`:''}</div>
+      <div class="track"><div class="fill" style="width:${shirtP*100}%"></div></div><div class="pct">คืบหน้า ${Math.round(shirtP*100)}% ของ quarter นี้</div></div>
+    <div class="rcard"><div class="rhead"><div class="ricon">📈</div><div class="rtitle">Comeback Reward</div></div>
+      <div class="rdetail">ขยับอันดับขึ้น 5–10 ใน 3 เดือน รับของสมนาคุณให้กำลังใจ (ไม่ทิ้งคนอันดับอื่น)</div>
+      <div class="track"><div class="fill" style="width:80%"></div></div><div class="pct">คืบหน้า 80%</div></div>
+    <div class="seg">🎁 แลกของจากสปอนเซอร์</div>
+    ${SPONSORS.map((s,i)=>`<div class="rcard"><div class="rhead"><div class="ricon">🛍️</div><div class="rtitle">${s.name}</div></div>
+      <div class="rdetail">โดย ${s.by} • ใช้ ${s.cost.toLocaleString()} พอยต์ (สิทธิ์เฉพาะคนติดอันดับ + วิ่งจริง)</div>
+      <button class="redeem" onclick="redeem(${i})">แลก ${s.cost.toLocaleString()} พอยต์</button></div>`).join('')}
+    <div class="hint">เดโม: ของจริงผูกกับอันดับจริง + ระบบสปอนเซอร์ + การตรวจว่าวิ่งจริง</div>`;
+}
+function redeem(i){const s=SPONSORS[i];
+  if(state.points<s.cost){toast('พอยต์ไม่พอ — วิ่ง challenge เพิ่มเพื่อสะสม!');return}
+  state.points-=s.cost;pushNotif('🎁',`แลก “${s.name}” สำเร็จ ใช้ ${s.cost} พอยต์`);render();toast('แลกของสำเร็จ! 🎉')}
+
+/* ---------- PROFILE ---------- */
+let profSeed=0;
+function profileView(){
+  const ran=Object.keys(state.results).length;
+  const kings=state.routes.filter(r=>myRank(r.id)===1).length;
+  const dv=division(myPace());
+  const demoR=state.routes[profSeed%state.routes.length];
+  const u=uid()+':'+profSeed;
+  const BADGES=[['🌅','นักวิ่งรุ่งอรุณ',true],['👑','ราชาสนามแรก',kings>0],['🔥','สตรีค 7 วัน',state.streak>=7],
+    ['⚡','เพซต่ำกว่า 5:00',myPace()<300],['🗺️','เปิดสนามใหม่',state.routes.some(r=>r.id.startsWith('r1'))&&false],
+    ['🏃','วิ่งครบ 5 สนาม',ran>=5],['💯','พอยต์ครบ 1000',state.points>=1000],['🥇','ติด Top 3',state.routes.some(r=>{const k=myRank(r.id);return k&&k<=3})]];
+  const SRC=[['จับเวลาในแอป (GPS)','เชื่อมต่อแล้ว','var(--trace)'],['Apple Health (iOS)','พร้อมต่อ','var(--mid)'],
+    ['Health Connect (Android)','พร้อมต่อ','var(--mid)'],['Garmin Connect','ต่อเพิ่มได้','var(--gold)'],['Strava','ตัดออกตามนโยบาย','var(--sunrise)']];
+  return `<div class="phead"><div class="bigav">${state.user.initial}</div>
+      <div class="uname">${state.user.name}</div>
+      <div class="umeta">ติดตาม ${state.favorites.size} สนาม • วิ่งแล้ว ${ran} สนาม • 🔥 ${state.streak} วัน</div>
+      <div class="divchip" style="color:${dv.c};border-color:${dv.c}66">ดิวิชั่น ${dv.n} • เพซเฉลี่ย ${fmt(myPace())}/กม.</div></div>
+    <div class="seg">🎖️ เหรียญตรา</div>
+    <div class="badges">${BADGES.map(([i,n,on])=>`<div class="bg ${on?'':'off'}"><div class="i">${i}</div><div class="n">${n}</div></div>`).join('')}</div>
+    <div class="seg">ฉายาของคุณ (ถ้าขึ้นอันดับ 1)</div>
+    <div class="gencard"><div style="font-size:28px">🏅</div>
+      <div class="gentitle">${rankTitle(1,demoR.name,u)}</div>
+      <div class="genep">${epithet(u,demoR.name)}</div>
+      <button class="btn" style="margin-top:13px" onclick="profSeed++;document.getElementById('content').innerHTML=profileView()">🎲 สุ่มฉายาใหม่</button>
+      <div class="hint">ฉายา = ตำแหน่งตามอันดับ + คำนำหน้า + พลัง + คุณสมบัติ • lock ตาม user ให้ไม่ซ้ำกัน</div></div>
+    <div class="seg">แหล่งข้อมูลวิ่ง</div>
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:13px 15px;margin-bottom:13px">
+      ${SRC.map(([n,b,c])=>`<div class="srcrow"><span style="${c==='var(--sunrise)'?'color:var(--mid);text-decoration:line-through':'color:var(--hi)'}">${n}</span>
+        <span class="sbadge" style="color:${c};border:1px solid ${c}55">${b}</span></div>`).join('')}
+      <div class="hint" style="text-align:left;margin-top:10px">ตัด Strava ออกเพราะนโยบายห้ามโชว์ข้อมูลคนอื่น/ทำ leaderboard ข้ามคน — ใช้ GPS เราเอง + Apple Health/Health Connect ที่นาฬิกาส่วนใหญ่ sync เข้าอยู่แล้วแทน</div></div>
+    <div class="linkrow" onclick="logout()"><span style="color:var(--sunrise)">⎋</span><span class="t" style="color:var(--sunrise)">ออกจากระบบ</span></div>`;
+}
+function logout(){state.user=null;state.view='home';render()}
+function goTab(v){state.view=v;render()}
+
+render();
+</script>
+</body>
+</html>

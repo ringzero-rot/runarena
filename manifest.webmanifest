@@ -1,0 +1,15 @@
+{
+  "name": "RunArena",
+  "short_name": "RunArena",
+  "description": "ทุกเส้นทางคือสนาม • ทุกการวิ่งคือการท้าชิง",
+  "lang": "th",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06070a",
+  "theme_color": "#0E1014",
+  "icons": [
+    { "src": "./assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

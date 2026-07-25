@@ -1,0 +1,152 @@
+// @ts-check
+/**
+ * App bootstrap: hydrate persisted state, wire a single delegated event layer,
+ * and render on every state change. Maps are mounted per-view after render.
+ */
+import { $, esc, delegate } from './ui/dom.js';
+import { toast } from './ui/toast.js';
+import {
+  hydrate, connectCloud, subscribe, getState, unreadCount,
+  login, logout, setView, openRoute, setSeason, setDiv, toggleFavorite,
+  setSearch, setLocStatus, setLocation, redeem, markNotificationsRead, myRank, distFromMe,
+  venueById, toggleVenueFav,
+} from './state/store.js';
+import { openVenue } from './views/venue.js';
+import { BKK } from './data/routes.js';
+import { SPONSORS } from './data/sponsors.js';
+import { renderMainMap, renderDetailMap, dispose } from './ui/map.js';
+import { loginView } from './views/login.js';
+import { homeView, routeListHTML } from './views/home.js';
+import { detailView } from './views/detail.js';
+import { eventsView } from './views/events.js';
+import { rewardsView } from './views/rewards.js';
+import { profileView, rerollEpithet } from './views/profile.js';
+import { notifsView } from './views/notifs.js';
+import { startChallenge } from './views/run.js';
+import { openDraw } from './views/draw.js';
+
+/* --------------------------------------------------------------- chrome */
+function topbar() {
+  const st = getState();
+  const n = unreadCount();
+  return `<div class="topbar"><div class="logo">RUN<b>ARENA</b></div>
+    <div class="topright"><span class="streak">🔥 ${st.streak} วัน</span>
+    <button class="bell" data-action="tab" data-arg="notifs" aria-label="การแจ้งเตือน">🔔${n ? `<span class="badge">${n}</span>` : ''}</button></div></div>`;
+}
+function navbar() {
+  const view = getState().view;
+  const items = [['home', '🏟️', 'สนาม'], ['events', '📅', 'ฟีดงานวิ่ง'], ['rewards', '🏆', 'รางวัล'], ['profile', '👤', 'โปรไฟล์']];
+  return `<div class="nav">${items.map(([v, i, l]) =>
+    `<button class="${view === v ? 'on' : ''}" data-action="tab" data-arg="${v}" aria-current="${view === v}"><span class="ic">${i}</span>${l}</button>`).join('')}</div>`;
+}
+
+function viewContent() {
+  switch (getState().view) {
+    case 'home': return homeView();
+    case 'events': return eventsView();
+    case 'rewards': return rewardsView();
+    case 'profile': return profileView();
+    case 'detail': return detailView();
+    case 'notifs': return notifsView();
+    default: return homeView();
+  }
+}
+
+/* --------------------------------------------------------------- render */
+function render() {
+  const app = $('app');
+  const st = getState();
+  if (!st.user) {
+    dispose('main'); dispose('detail');
+    app.innerHTML = loginView();
+    const input = /** @type {HTMLInputElement} */ ($('loginName'));
+    if (input) {
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+      input.focus();
+    }
+    return;
+  }
+  app.innerHTML = `${topbar()}<div class="content" id="content">${viewContent()}</div>${navbar()}`;
+  mountMaps();
+  wireSearch();
+}
+
+function mountMaps() {
+  const st = getState();
+  if (st.view === 'home' && $('map')) {
+    const nearby = [...st.routes].sort((a, b) => distFromMe(a) - distFromMe(b)).slice(0, 6);
+    renderMainMap($('map'), {
+      routes: st.routes, here: st.here, center: BKK, boundsRoutes: nearby,
+      kingOf: (id) => myRank(id) === 1,
+      onRoute: (id) => openRoute(id),
+    });
+  } else {
+    dispose('main');
+  }
+  if (st.view === 'detail' && $('detailmap')) {
+    const r = st.routes.find((x) => x.id === st.routeId);
+    renderDetailMap($('detailmap'), r);
+  } else {
+    dispose('detail');
+  }
+}
+
+/** Live search updates only the list — the map is left untouched (no re-init). */
+function wireSearch() {
+  const input = /** @type {HTMLInputElement} */ ($('searchInput'));
+  if (!input) return;
+  input.addEventListener('input', () => {
+    setSearch(input.value);
+    const list = $('routeList');
+    if (list) list.innerHTML = routeListHTML();
+  });
+}
+
+/* --------------------------------------------------------------- actions */
+function doLogin() {
+  const input = /** @type {HTMLInputElement} */ ($('loginName'));
+  const v = input ? input.value : '';
+  login(v);
+  askLocation(true);
+  toast('ยินดีต้อนรับสู่สนาม ' + (getState().user?.name || '') + '!');
+}
+
+function askLocation(silent) {
+  if (!navigator.geolocation) { setLocStatus('denied'); return; }
+  setLocStatus('loading');
+  navigator.geolocation.getCurrentPosition(
+    (p) => { setLocation([p.coords.latitude, p.coords.longitude], 'ok'); toast('พบตำแหน่งคุณแล้ว — เรียงสนามตามระยะใกล้'); },
+    () => { setLocStatus('denied'); if (!silent) toast('ไม่ได้รับสิทธิ์ตำแหน่ง — ใช้กรุงเทพฯ เป็นค่าเริ่มต้น'); },
+    { timeout: 8000, enableHighAccuracy: true }
+  );
+}
+
+const handlers = {
+  login: () => doLogin(),
+  logout: () => logout(),
+  tab: (v) => { if (v === 'notifs') markNotificationsRead(); setView(v); },
+  openRoute: (id) => openRoute(id),
+  openVenue: (slug) => openVenue(slug),
+  toggleFav: (id) => { toggleFavorite(id); toast('อัปเดตรายการติดตาม'); },
+  toggleVenueFav: (slug) => { const v = venueById(slug); if (v) { toggleVenueFav(v); toast('อัปเดตรายการติดตาม'); } },
+  askLocation: () => askLocation(false),
+  setSeason: (s) => setSeason(s),
+  setDiv: (v) => setDiv(v === '1'),
+  startChallenge: (id) => startChallenge(id),
+  openDraw: () => openDraw(),
+  rerollEpithet: () => { rerollEpithet(); const c = $('content'); if (c) c.innerHTML = profileView(); },
+  redeem: (i) => { if (!redeem(Number(i), SPONSORS)) toast('พอยต์ไม่พอ — วิ่ง challenge เพิ่มเพื่อสะสม!'); else toast('แลกของสำเร็จ! 🎉'); },
+  openEvent: (url) => window.open(url, '_blank', 'noopener,noreferrer'),
+};
+
+/* --------------------------------------------------------------- boot */
+hydrate();
+subscribe(render);
+delegate(/** @type {HTMLElement} */ ($('app')), handlers);
+render();
+connectCloud(); // local-first: attaches Supabase in the background if configured
+
+// PWA: register the service worker when served over http(s).
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
