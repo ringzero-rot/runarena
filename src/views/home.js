@@ -1,17 +1,18 @@
 // @ts-check
 import { esc } from '../ui/dom.js';
-import { getState, venues, venueNearest, venueBestRank, venueFavored, levelOf, dailyMissions, weeklyStats } from '../state/store.js';
+import { getState, venues, venueNearest, venueBestRank, venueFavored, levelOf, dailyMissions, weeklyStats, daysSinceLastRun } from '../state/store.js';
 import { TRACE_PATHS } from '../data/routes.js';
 import { routeShapeSvg } from '../ui/shape.js';
-import { coachSay, COACH_NAME, COACH_ICON } from '../data/coach.js';
+import { coachSay, getCoach } from '../data/coach.js';
 
-/** Coach Zaap chat bubble — a sassy daily quip you can reroll + share. */
+/** Coach chat bubble — a personalised daily quip you can reroll + share. */
 function homeCoachHTML() {
   const st = getState();
-  const line = coachSay('daily', { name: st.user?.name, streak: st.streak, level: levelOf().level });
+  const coach = getCoach(st.settings.coachId);
+  const line = coachSay('daily', { name: st.user?.name, streak: st.streak, level: levelOf().level, lastRunDays: daysSinceLastRun() }, Date.now(), coach.id);
   return `<div class="coachbar">
-    <div class="coachav">${COACH_ICON}</div>
-    <div class="coachbody"><div class="coachname">${COACH_NAME} <span>ปากจัดประจำสนาม</span></div><div class="coachline" id="coachLine">${esc(line)}</div></div>
+    <div class="coachav">${coach.icon}</div>
+    <div class="coachbody"><div class="coachname">${esc(coach.name)} <span>${esc(coach.tag)}</span></div><div class="coachline" id="coachLine">${esc(line)}</div></div>
     <div class="coachacts">
       <button class="coachbtn" data-action="coachReroll" aria-label="มุกใหม่">🔄</button>
       <button class="coachbtn" data-action="coachShare" aria-label="แชร์คำคม">📤</button>

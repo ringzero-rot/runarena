@@ -68,7 +68,7 @@ const state = {
   kudosGiven: new Set(),
   duels: /** @type {any[]} */ ([]),
   runs: /** @type {any[]} */ ([]),               // run history log
-  settings: { voice: true, ghostMode: false, onboarded: false, weeklyGoalKm: 20 },
+  settings: { voice: true, ghostMode: false, onboarded: false, weeklyGoalKm: 20, coachId: 'zaap' },
   // derived cache
   routes: buildRoutes([]),
 };
@@ -129,7 +129,7 @@ export function hydrate() {
   state.kudosGiven = new Set(s.kudosGiven ?? []);
   state.duels = s.duels ?? [];
   state.runs = s.runs ?? [];
-  state.settings = { voice: true, ghostMode: false, onboarded: false, weeklyGoalKm: 20, ...(s.settings ?? {}) };
+  state.settings = { voice: true, ghostMode: false, onboarded: false, weeklyGoalKm: 20, coachId: 'zaap', ...(s.settings ?? {}) };
   state.routes = buildRoutes(state.customRoutes);
 }
 
@@ -464,6 +464,11 @@ export function weeklyStats() {
   const cutoff = Date.now() - 7 * 24 * 3600 * 1000;
   const recent = state.runs.filter((r) => new Date(r.date).getTime() >= cutoff);
   return { runs: recent.length, km: recent.reduce((a, r) => a + (r.km || 0), 0) };
+}
+
+/** Days since the most recent run (large number if never). */
+export function daysSinceLastRun() {
+  return state.runs.length ? (Date.now() - new Date(state.runs[0].date).getTime()) / 86400000 : 99;
 }
 
 export function getSettings() { return state.settings; }

@@ -1,8 +1,10 @@
 // @ts-check
 import { $ } from '../ui/dom.js';
+import { toast } from '../ui/toast.js';
 import { getSettings, setSetting } from '../state/store.js';
 import { VERSION, BUILD } from '../version.js';
 import { openOnboarding } from './onboarding.js';
+import { COACHES, getCoach } from '../data/coach.js';
 
 export function openSettings() {
   const st = getSettings();
@@ -11,6 +13,11 @@ export function openSettings() {
   o.id = 'settingsOverlay';
   o.innerHTML = `<div class="sheet">
     <div class="eyebrow">ตั้งค่า</div><h2>ตั้งค่า</h2>
+    <div class="seg" style="margin-top:2px">🎭 เลือกโค้ชของคุณ</div>
+    <div class="coachpick">
+      ${Object.values(COACHES).map((c) => `<button class="coachopt ${st.coachId === c.id ? 'on' : ''} ${c.pro ? 'locked' : ''}" data-coach="${c.id}">
+        <div class="coi">${c.icon}</div><div class="con">${c.name}</div>${c.pro ? '<div class="colock">✦ PRO</div>' : ''}</button>`).join('')}
+    </div>
     <div class="setrow">
       <div class="setinfo"><b>โค้ชเสียงตอนวิ่ง</b><span>ประกาศระยะ + เพซทุกกิโลเมตร</span></div>
       <button class="toggle ${st.voice ? 'on' : ''}" data-set="voice" aria-label="สลับโค้ชเสียง"><i></i></button>
@@ -35,6 +42,15 @@ export function openSettings() {
     const next = !getSettings()[k];
     setSetting(k, next);
     b.classList.toggle('on', next);
+  }));
+  o.querySelectorAll('[data-coach]').forEach((b) => b.addEventListener('click', () => {
+    const id = b.getAttribute('data-coach');
+    const c = getCoach(id);
+    if (c.pro) { toast('โค้ช “' + c.name + '” เฉพาะ RunArena Pro — เร็ว ๆ นี้! ✦'); return; }
+    setSetting('coachId', id);
+    o.querySelectorAll('.coachopt').forEach((x) => x.classList.remove('on'));
+    b.classList.add('on');
+    toast('เปลี่ยนเป็น ' + c.name + ' แล้ว ' + c.icon);
   }));
   const setGoal = (delta) => {
     const cur = getSettings().weeklyGoalKm || 20;

@@ -10,6 +10,7 @@ import {
   login, logout, setView, openRoute, setSeason, setDiv, toggleFavorite,
   setSearch, setLocStatus, setLocation, redeem, markNotificationsRead, myRank, distFromMe,
   venueById, toggleVenueFav, levelOf, claimMission, giveKudos, challengeRival, pendingDuels,
+  daysSinceLastRun,
 } from './state/store.js';
 import { openVenue } from './views/venue.js';
 import { BKK } from './data/routes.js';
@@ -27,8 +28,8 @@ import { startChallenge } from './views/run.js';
 import { openDraw } from './views/draw.js';
 import { openOnboarding } from './views/onboarding.js';
 import { openSettings } from './views/settings.js';
-import { shareArena } from './views/share.js';
-import { coachSay, COACH_NAME } from './data/coach.js';
+import { shareArena, openCoachCard } from './views/share.js';
+import { coachSay, getCoach } from './data/coach.js';
 import { SHARE_BASE } from './config.js';
 
 /* --------------------------------------------------------------- chrome */
@@ -191,15 +192,11 @@ const handlers = {
   proWaitlist: () => toast('บันทึกความสนใจแล้ว! เราจะแจ้งคุณก่อนใครตอนเปิดตัว Pro ✦'),
   coachReroll: () => {
     const st = getState();
+    const coach = getCoach(st.settings.coachId);
     const el = $('coachLine');
-    if (el) el.textContent = coachSay('daily', { name: st.user?.name, streak: st.streak, level: levelOf().level }, Math.floor(Math.random() * 1e9));
+    if (el) el.textContent = coachSay('daily', { name: st.user?.name, streak: st.streak, level: levelOf().level, lastRunDays: daysSinceLastRun() }, Math.floor(Math.random() * 1e9), coach.id);
   },
-  coachShare: () => {
-    const line = $('coachLine')?.textContent || '';
-    const text = `${COACH_NAME} 🌶️: “${line}” — มาโดนแซวใน RunArena กัน!`;
-    if (navigator.share) navigator.share({ title: 'RunArena', text, url: SHARE_BASE }).catch(() => {});
-    else { if (navigator.clipboard) navigator.clipboard.writeText(text + ' ' + SHARE_BASE).catch(() => {}); toast('คัดลอกคำคมโค้ชแล้ว 📤'); }
-  },
+  coachShare: () => { openCoachCard(getCoach(getState().settings.coachId), $('coachLine')?.textContent || ''); },
   inviteArena: (id) => {
     const r = getState().routes.find((x) => x.id === id);
     shareArena(id, r ? r.name : '').then((res) => {

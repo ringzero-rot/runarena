@@ -40,6 +40,55 @@ function drawCard(title, ep, routeName, time, rank) {
   x.fillStyle = '#5D6675'; x.font = '500 22px sans-serif'; x.fillText('มาท้าชิงกันไหม?', 400, 940);
 }
 
+/** A shareable quote card for the coach's line. */
+export function openCoachCard(coach, quote) {
+  const o = document.createElement('div');
+  o.className = 'overlay'; o.id = 'coachCardOverlay';
+  o.innerHTML = `<div class="sheet"><div class="eyebrow">คำคมโค้ช</div><h2>การ์ดคำคม ${coach.name}</h2>
+    <canvas id="coachcanvas" width="800" height="800"></canvas>
+    <button class="btn gold" id="ccShare">📤 แชร์ไป LINE / IG</button>
+    <button class="btn ghost small" id="ccDl" style="margin-top:8px">⬇ บันทึกรูป</button>
+    <button class="btn ghost small" id="ccClose" style="margin-top:8px">ปิด</button></div>`;
+  document.body.appendChild(o);
+  const text = `${coach.name}: “${quote}”`;
+  $('ccShare').addEventListener('click', () => {
+    const c = /** @type {HTMLCanvasElement} */ ($('coachcanvas'));
+    c.toBlob(async (blob) => {
+      const file = blob ? new File([blob], 'coach.png', { type: 'image/png' }) : null;
+      try {
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ title: 'RunArena', text, files: [file] });
+        else if (navigator.share) await navigator.share({ title: 'RunArena', text, url: SHARE_BASE });
+        else { if (navigator.clipboard) navigator.clipboard.writeText(text + ' ' + SHARE_BASE).catch(() => {}); toast('คัดลอกคำคมแล้ว 📤'); }
+      } catch { /* cancelled */ }
+    }, 'image/png');
+  });
+  $('ccDl').addEventListener('click', () => {
+    const c = /** @type {HTMLCanvasElement} */ ($('coachcanvas'));
+    const a = document.createElement('a'); a.download = 'coach-quote.png'; a.href = c.toDataURL('image/png'); a.click();
+    toast('บันทึกการ์ดแล้ว 📸');
+  });
+  $('ccClose').addEventListener('click', () => closeOverlay('coachCardOverlay'));
+  o.addEventListener('click', (e) => { if (e.target === o) closeOverlay('coachCardOverlay'); });
+  setTimeout(() => drawCoachCard(coach, quote), 50);
+}
+
+function drawCoachCard(coach, quote) {
+  const c = /** @type {HTMLCanvasElement} */ ($('coachcanvas'));
+  if (!c) return;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 800, 800);
+  g.addColorStop(0, '#241a2e'); g.addColorStop(0.6, '#171319'); g.addColorStop(1, '#0E1014');
+  x.fillStyle = g; x.fillRect(0, 0, 800, 800);
+  x.strokeStyle = 'rgba(255,86,48,.5)'; x.lineWidth = 6; x.strokeRect(20, 20, 760, 760);
+  x.textAlign = 'center';
+  x.font = '150px sans-serif'; x.fillText(coach.icon, 400, 220);
+  x.fillStyle = '#FF5630'; x.font = '800 42px sans-serif'; x.fillText(coach.name, 400, 300);
+  x.fillStyle = '#F2F4F7'; x.font = '600 44px sans-serif';
+  wrap(x, '“' + quote + '”', 400, 410, 680, 60);
+  x.fillStyle = '#FF5630'; x.font = '800 34px sans-serif'; x.fillText('RUNARENA', 400, 715);
+  x.fillStyle = '#5D6675'; x.font = '500 22px sans-serif'; x.fillText('มาโดนแซวกันไหม?', 400, 752);
+}
+
 function wrap(x, txt, cx, cy, max, lh) {
   const chars = [...String(txt)];
   let line = ''; const lines = [];

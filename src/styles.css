@@ -419,6 +419,13 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
 .coachacts{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
 .coachbtn{width:30px;height:30px;border-radius:9px;background:#0d1017;border:1px solid var(--line);color:var(--mid);font-size:13px;cursor:pointer}
 .coachbtn:active{transform:scale(.9)}
+.coachpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.coachopt{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 6px;cursor:pointer;color:var(--hi);text-align:center}
+.coachopt.on{border-color:var(--sunrise);background:rgba(255,86,48,.1)}
+.coachopt.locked{opacity:.75}
+.coachopt .coi{font-size:26px;line-height:1}
+.coachopt .con{font-family:var(--disp);font-weight:700;font-size:11px;margin-top:4px}
+.colock{position:absolute;top:5px;right:5px;font-size:8px;font-family:var(--disp);font-weight:800;color:#1a1205;background:linear-gradient(90deg,#c9a3ff,#f5b83d);border-radius:6px;padding:1px 4px}
 
 /* personal records */
 .prgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
