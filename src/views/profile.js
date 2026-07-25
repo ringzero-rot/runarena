@@ -4,6 +4,7 @@ import { getState, myRank, myPace, uid } from '../state/store.js';
 import { epithet, rankTitle } from '../core/epithet.js';
 import { division } from '../core/division.js';
 import { fmt } from '../core/format.js';
+import { VERSION, BUILD } from '../version.js';
 
 // Local, view-only seed to reroll the demo epithet.
 let profSeed = 0;
@@ -52,5 +53,6 @@ export function profileView() {
       ${SRC.map(([n, b, c]) => `<div class="srcrow"><span style="${c === 'var(--sunrise)' ? 'color:var(--mid);text-decoration:line-through' : 'color:var(--hi)'}">${esc(n)}</span>
         <span class="sbadge" style="color:${c};border:1px solid ${c}55">${esc(b)}</span></div>`).join('')}
       <div class="hint" style="text-align:left;margin-top:10px">ตัด Strava ออกเพราะนโยบายห้ามโชว์ข้อมูลคนอื่น/ทำ leaderboard ข้ามคน — ใช้ GPS เราเอง + Apple Health/Health Connect ที่นาฬิกาส่วนใหญ่ sync เข้าอยู่แล้วแทน</div></div>
-    <div class="linkrow" role="button" tabindex="0" data-action="logout"><span style="color:var(--sunrise)">⎋</span><span class="t" style="color:var(--sunrise)">ออกจากระบบ</span></div>`;
+    <div class="linkrow" role="button" tabindex="0" data-action="logout"><span style="color:var(--sunrise)">⎋</span><span class="t" style="color:var(--sunrise)">ออกจากระบบ</span></div>
+    <div class="verline">RunArena v${esc(VERSION)} · build ${esc(BUILD)}</div>`;
 }

@@ -1,4 +1,6 @@
 // @ts-check
+import { VERSION, BUILD } from '../version.js';
+
 export function loginView() {
   return `<div class="loginwrap">
     <div class="loginhero"><div class="big">RUN<span style="color:var(--sunrise)">ARENA</span></div>
@@ -8,5 +10,6 @@ export function loginView() {
       <input class="input" id="loginName" placeholder="เช่น ตี๋ขาแรง" autocomplete="nickname" data-action="loginEnter">
       <button class="btn" data-action="login">⚡ เข้าสู่สนาม</button>
       <div class="hint">เดโม: ของจริงต่อ Sign in with Apple / Google / Supabase Auth</div>
-    </div></div>`;
+    </div>
+    <div class="verline">RunArena v${VERSION} · build ${BUILD}</div></div>`;
 }

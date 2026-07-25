@@ -1,5 +1,7 @@
 /* RunArena service worker — app-shell cache + runtime caching for offline use. */
-const CACHE = 'runarena-v7';
+// Keep this version in sync with src/version.js (VERSION). A changed cache name
+// is what triggers the in-app "new version available" update prompt.
+const CACHE = 'runarena-1.0.0';
 
 // Core shell precached on install. Other same-origin modules and CDN assets are
 // cached at runtime the first time they're requested.
