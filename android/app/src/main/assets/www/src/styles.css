@@ -378,6 +378,35 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
 .prolist{list-style:none;margin:11px 0 13px;position:relative}
 .prolist li{font-size:12.5px;color:var(--hi);padding:5px 0;line-height:1.4}
 
+/* ===== premium visuals: real route shapes + heroes ===== */
+.thumb.king{border-color:rgba(245,184,61,.55);box-shadow:0 0 0 1px rgba(245,184,61,.25)}
+
+.featured{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;cursor:pointer;
+  background:radial-gradient(120px 120px at 84% 28%,rgba(40,224,200,.16),transparent 70%),linear-gradient(120deg,#182234,#141a26 60%,#12151d);
+  border:1px solid rgba(40,224,200,.35);border-radius:20px;padding:15px;margin-bottom:12px}
+.featured:active{transform:scale(.995)}
+.featshape{width:92px;height:92px;flex-shrink:0}
+.featshape svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(40,224,200,.4))}
+.featbody{flex:1;min-width:0}
+.featlabel{font-family:var(--disp);font-weight:700;font-size:11px;color:var(--trace);letter-spacing:.04em}
+.featname{font-family:var(--disp);font-weight:800;font-size:19px;margin:3px 0 4px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.featmeta{font-size:11.5px;color:var(--mid)}
+.featcta{display:inline-block;margin-top:10px;font-family:var(--disp);font-weight:800;font-size:12px;color:#04201c;background:linear-gradient(90deg,var(--trace),#4defd8);border-radius:999px;padding:6px 13px}
+
+.detailhero{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;
+  background:radial-gradient(150px 150px at 86% 18%,rgba(40,224,200,.14),transparent 70%),linear-gradient(120deg,#1b2331,#151a24 60%,#12151d);
+  border:1px solid var(--line);border-radius:18px;padding:15px;margin:2px 0 12px}
+.detailhero.mine{border-color:rgba(245,184,61,.45);background:radial-gradient(150px 150px at 86% 18%,rgba(245,184,61,.16),transparent 70%),linear-gradient(120deg,#221d12,#181510 60%,#141019)}
+.dhshape{width:90px;height:90px;flex-shrink:0}
+.dhshape svg{width:100%;height:100%}
+.dhbody{flex:1;min-width:0}
+.dheyebrow{font-family:var(--disp);font-weight:600;font-size:11px;color:var(--trace);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dhname{font-family:var(--disp);font-weight:800;font-size:20px;line-height:1.15;margin:3px 0 7px}
+.dhstats{display:flex;flex-wrap:wrap;gap:8px}
+.dhstats span{font-family:var(--disp);font-weight:600;font-size:11.5px;color:var(--mid);background:rgba(13,16,23,.55);border:1px solid var(--line);border-radius:8px;padding:3px 8px}
+.dhstats .me{color:var(--gold);border-color:rgba(245,184,61,.35)}
+.dhstats .dim{color:var(--dim)}
+
 /* personal records */
 .prgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
 .pr{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 4px;text-align:center}

@@ -2,6 +2,7 @@
 import { esc } from '../ui/dom.js';
 import { getState, venues, venueNearest, venueBestRank, venueFavored, levelOf, dailyMissions, weeklyStats } from '../state/store.js';
 import { TRACE_PATHS } from '../data/routes.js';
+import { routeShapeSvg } from '../ui/shape.js';
 
 /** Personal dashboard: level + XP, streak/stats, and today's missions. */
 function dashboardHTML() {
@@ -63,6 +64,25 @@ function fmtDist(d) {
   return d < 1 ? Math.round(d * 1000) + ' ม.' : d.toFixed(1) + ' กม.';
 }
 
+/** Big "featured arena" hero — a visual focal point at the top of home. */
+function featuredHTML() {
+  const vs = venues().slice().sort((a, b) => venueNearest(a) - venueNearest(b));
+  const feat = vs.find((v) => venueBestRank(v) !== 1) || vs[0];
+  if (!feat) return '';
+  const d = venueNearest(feat);
+  const km = Math.min(...feat.routes.map((r) => r.distanceKm));
+  const rank = venueBestRank(feat);
+  return `<div class="featured" role="button" tabindex="0" data-action="openVenue" data-arg="${esc(feat.venue)}" aria-label="สนามแนะนำ ${esc(feat.venueName)}">
+    <div class="featshape">${routeShapeSvg(feat.routes[0].coords, { w: 128, h: 128, pad: 14, stroke: 'rgba(40,224,200,.9)', sw: 3, dot: true })}</div>
+    <div class="featbody">
+      <div class="featlabel">🔥 สนามแนะนำวันนี้</div>
+      <div class="featname">${esc(feat.venueName)}</div>
+      <div class="featmeta">${feat.city ? esc(feat.city) + ' · ' : ''}${km.toFixed(2)} กม. · ${fmtDist(d)} จากคุณ</div>
+      <div class="featcta">${rank ? 'ไต่อันดับ/ป้องกัน' : 'ไปพิชิตเป็นราชา'} ▶</div>
+    </div>
+  </div>`;
+}
+
 /** A venue card. Opening it either goes straight to its route or shows a picker. */
 export function venueCard(v) {
   const d = venueNearest(v);
@@ -79,7 +99,7 @@ export function venueCard(v) {
       ? `<div class="n">#${rank}</div><div class="l">อันดับคุณ</div>`
       : '<div class="n" style="color:var(--dim)">—</div><div class="l">ยังไม่ลง</div>';
   return `<div class="card" role="button" tabindex="0" data-action="openVenue" data-arg="${esc(v.venue)}" aria-label="${esc(v.venueName)}">
-    <div class="thumb">${miniTrace(v.routes[0].trace)}
+    <div class="thumb ${rank === 1 ? 'king' : ''}">${routeShapeSvg(v.routes[0].coords, { stroke: rank === 1 ? 'var(--gold)' : 'var(--trace)', sw: 2.6, dot: true })}
       <button class="star ${fav ? 'on' : ''}" data-action="toggleVenueFav" data-arg="${esc(v.venue)}" aria-label="${fav ? 'เลิกติดตาม' : 'ติดตามสนาม'}">${fav ? '★' : '☆'}</button></div>
     <div style="flex:1;min-width:0">
       <div class="cname">${esc(v.venueName)}</div>
@@ -120,6 +140,7 @@ export function homeView() {
     : '⌖ แตะเพื่อใช้ตำแหน่งจริง';
   return `
     <div class="home-hero home-hide">${dashboardHTML()}</div>
+    <div class="home-hide">${featuredHTML()}</div>
     <div class="searchwrap">
       <div class="search">🔎<input id="searchInput" type="search" enterkeyhint="search" autocomplete="off"
         placeholder="ค้นหาสนาม / จังหวัด…" value="${esc(st.search)}" aria-label="ค้นหาสนามหรือจังหวัด">

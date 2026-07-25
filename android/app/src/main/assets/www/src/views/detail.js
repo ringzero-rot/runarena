@@ -4,6 +4,7 @@ import { getState, leaderboard, myRank } from '../state/store.js';
 import { epithet, rankTitle } from '../core/epithet.js';
 import { division } from '../core/division.js';
 import { fmt, pace } from '../core/format.js';
+import { routeShapeSvg } from '../ui/shape.js';
 
 export function detailView() {
   const st = getState();
@@ -36,8 +37,14 @@ export function detailView() {
 
   return `
     <button class="back" data-action="tab" data-arg="home">← กลับไปที่สนาม</button>
-    <h1 class="title" style="font-size:21px">${esc(r.name)}</h1>
-    ${r.city ? `<div class="sub" style="margin-bottom:${siblings > 1 ? '8' : '10'}px">📍 ${esc(r.city)} • ${esc(r.prov)}${r.label && siblings > 1 ? ` • เส้นทาง: ${esc(r.label)}` : ''}</div>` : ''}
+    <div class="detailhero ${king && king.isMe ? 'mine' : ''}">
+      <div class="dhshape">${routeShapeSvg(r.coords, { w: 132, h: 132, pad: 16, stroke: 'rgba(40,224,200,.55)', sw: 2.6, dot: true })}</div>
+      <div class="dhbody">
+        <div class="dheyebrow">🏟️ ${esc(r.city || 'สนามท้าชิง')}${r.label && siblings > 1 ? ' · ' + esc(r.label) : ''}</div>
+        <h1 class="dhname">${esc(r.name)}</h1>
+        <div class="dhstats"><span>⚑ ${r.distanceKm.toFixed(2)} กม.</span><span>👥 ${r.runners} คน</span>${myBest ? `<span class="me">⏱ ${fmt(myBest)}</span>` : '<span class="dim">ยังไม่ลงสนาม</span>'}</div>
+      </div>
+    </div>
     ${siblings > 1 ? `<button class="btn ghost small" data-action="openVenue" data-arg="${esc(r.venue)}" style="margin-bottom:11px">🔀 เลือกเส้นทางอื่นใน${esc(r.venueName)} (${siblings})</button>` : ''}
     <div id="detailmap" role="application" aria-label="แผนที่เส้นทาง"></div>
     <div class="hstats">
