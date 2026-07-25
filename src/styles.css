@@ -6,9 +6,9 @@
   --disp:'Bai Jamjuree',sans-serif;--body:'IBM Plex Sans Thai',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{background:#06070a;font-family:var(--body);color:var(--hi);display:flex;justify-content:center;min-height:100vh}
+body{background:#06070a;font-family:var(--body);color:var(--hi);display:flex;justify-content:center;min-height:100vh;min-height:100dvh}
 #app{width:100%;max-width:440px;background:radial-gradient(700px 400px at 50% -8%,#1b1f2a 0,transparent 60%),var(--bg);
-  min-height:100vh;position:relative;display:flex;flex-direction:column;box-shadow:0 0 80px rgba(0,0,0,.5)}
+  height:100vh;height:100dvh;position:relative;display:flex;flex-direction:column;box-shadow:0 0 80px rgba(0,0,0,.5)}
 ::-webkit-scrollbar{width:0}
 
 /* keyboard accessibility: visible focus ring for the now-focusable cards/buttons */
@@ -17,13 +17,14 @@ body{background:#06070a;font-family:var(--body);color:var(--hi);display:flex;jus
 button{font:inherit}
 
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;position:sticky;top:0;z-index:600;
-  background:rgba(14,16,20,.92);backdrop-filter:blur(10px)}
+  background:rgba(14,16,20,.92);backdrop-filter:blur(10px);
+  padding-top:calc(14px + env(safe-area-inset-top));padding-left:calc(18px + env(safe-area-inset-left));padding-right:calc(18px + env(safe-area-inset-right))}
 .logo{font-family:var(--disp);font-weight:800;font-size:18px}
 .logo b{color:var(--sunrise)}
 .topright{display:flex;align-items:center;gap:6px}
 .streak{font-family:var(--disp);font-weight:700;font-size:12px;color:var(--gold);background:rgba(245,184,61,.12);
   border:1px solid rgba(245,184,61,.35);border-radius:999px;padding:4px 10px}
-.bell{position:relative;background:none;border:none;cursor:pointer;color:var(--mid);font-size:19px;padding:4px}
+.bell{position:relative;background:none;border:none;cursor:pointer;color:var(--mid);font-size:19px;padding:7px 6px;min-height:40px}
 .bell .badge{position:absolute;top:-2px;right:-2px;background:var(--sunrise);color:#fff;font-family:var(--disp);
   font-weight:700;font-size:10px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .content{flex:1;overflow-y:auto;padding:0 18px 24px}
@@ -39,7 +40,7 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
 .search input::placeholder{color:var(--dim)}
 .locbar{display:flex;align-items:center;gap:7px;margin-bottom:11px;flex-wrap:wrap}
 .nearchip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,86,48,.12);border:1px solid rgba(255,86,48,.4);
-  color:var(--sunrise);font-family:var(--disp);font-weight:600;font-size:11px;border-radius:999px;padding:5px 11px;cursor:pointer}
+  color:var(--sunrise);font-family:var(--disp);font-weight:600;font-size:11px;border-radius:999px;padding:8px 12px;cursor:pointer}
 .nearchip.ok{background:rgba(40,224,200,.12);border-color:rgba(40,224,200,.4);color:var(--trace)}
 
 /* ---- real map ---- */
@@ -62,7 +63,7 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
 .card:active{transform:scale(.99)}
 .thumb{width:58px;height:58px;border-radius:13px;background:#0d1017;border:1px solid var(--line);flex-shrink:0;position:relative;overflow:hidden}
 .thumb svg{position:absolute;inset:0;width:100%;height:100%}
-.star{position:absolute;top:4px;right:5px;font-size:14px;cursor:pointer;z-index:2;color:var(--dim);background:none;border:none}
+.star{position:absolute;top:0;right:0;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;z-index:2;color:var(--dim);background:none;border:none}
 .star.on{color:var(--gold)}
 .cname{font-family:var(--disp);font-weight:600;font-size:14.5px}
 .crow{display:flex;gap:7px;margin-top:5px;flex-wrap:wrap}
@@ -189,15 +190,16 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
 .linkrow{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:11px;cursor:pointer}
 .linkrow .t{flex:1;font-family:var(--disp);font-weight:600;font-size:14px}
 
-.nav{position:sticky;bottom:0;display:flex;background:rgba(14,16,20,.95);backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:600}
+.nav{position:sticky;bottom:0;display:flex;background:rgba(14,16,20,.95);backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:600;
+  padding-bottom:env(safe-area-inset-bottom)}
 .nav button{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
   color:var(--dim);font-family:var(--disp);font-weight:600;font-size:10px;padding:9px 0 11px}
 .nav button.on{color:var(--sunrise)}
 .nav .ic{font-size:18px}
 
 .overlay{position:fixed;inset:0;background:rgba(6,7,10,.78);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;z-index:900}
-.sheet{width:100%;max-width:440px;background:var(--bg);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:20px 18px 26px;
-  animation:up .28s ease;max-height:92vh;overflow-y:auto}
+.sheet{width:100%;max-width:440px;background:var(--bg);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:20px 18px calc(26px + env(safe-area-inset-bottom));
+  animation:up .28s ease;max-height:92dvh;overflow-y:auto}
 @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
 .sheet h2{font-family:var(--disp);font-weight:800;font-size:19px;margin-bottom:4px}
 .sheet p{color:var(--mid);font-size:13px;line-height:1.55;margin-bottom:13px}
@@ -276,7 +278,7 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
 /* ===================== engagement layer ===================== */
 /* topbar level chip */
 .lvchip{background:linear-gradient(90deg,rgba(40,224,200,.16),rgba(245,184,61,.16));border:1px solid rgba(40,224,200,.4);
-  color:var(--trace);font-family:var(--disp);font-weight:700;font-size:12px;border-radius:999px;padding:4px 10px;cursor:pointer}
+  color:var(--trace);font-family:var(--disp);font-weight:700;font-size:12px;border-radius:999px;padding:8px 11px;cursor:pointer}
 .streak{font-family:var(--disp);font-weight:700;font-size:12px;color:var(--gold);background:rgba(245,184,61,.12);border:1px solid rgba(245,184,61,.35);border-radius:999px;padding:4px 9px}
 .navdot{position:absolute;top:-3px;right:-8px;width:7px;height:7px;border-radius:50%;background:var(--sunrise);box-shadow:0 0 6px var(--sunrise)}
 .nav .ic{position:relative}
