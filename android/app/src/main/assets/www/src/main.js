@@ -28,6 +28,8 @@ import { openDraw } from './views/draw.js';
 import { openOnboarding } from './views/onboarding.js';
 import { openSettings } from './views/settings.js';
 import { shareArena } from './views/share.js';
+import { coachSay, COACH_NAME } from './data/coach.js';
+import { SHARE_BASE } from './config.js';
 
 /* --------------------------------------------------------------- chrome */
 function topbar() {
@@ -187,6 +189,17 @@ const handlers = {
   duel: (routeId) => { const name = challengeRival(routeId); toast(name ? `⚔️ ท้าดวล ${name} แล้ว! วิ่งให้ชนะเวลาเขา` : 'ยังไม่มีคู่ปรับให้ท้า — คุณอาจเป็นราชาอยู่แล้ว 👑'); },
   openSettings: () => openSettings(),
   proWaitlist: () => toast('บันทึกความสนใจแล้ว! เราจะแจ้งคุณก่อนใครตอนเปิดตัว Pro ✦'),
+  coachReroll: () => {
+    const st = getState();
+    const el = $('coachLine');
+    if (el) el.textContent = coachSay('daily', { name: st.user?.name, streak: st.streak, level: levelOf().level }, Math.floor(Math.random() * 1e9));
+  },
+  coachShare: () => {
+    const line = $('coachLine')?.textContent || '';
+    const text = `${COACH_NAME} 🌶️: “${line}” — มาโดนแซวใน RunArena กัน!`;
+    if (navigator.share) navigator.share({ title: 'RunArena', text, url: SHARE_BASE }).catch(() => {});
+    else { if (navigator.clipboard) navigator.clipboard.writeText(text + ' ' + SHARE_BASE).catch(() => {}); toast('คัดลอกคำคมโค้ชแล้ว 📤'); }
+  },
   inviteArena: (id) => {
     const r = getState().routes.find((x) => x.id === id);
     shareArena(id, r ? r.name : '').then((res) => {

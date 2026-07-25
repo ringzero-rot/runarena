@@ -3,6 +3,21 @@ import { esc } from '../ui/dom.js';
 import { getState, venues, venueNearest, venueBestRank, venueFavored, levelOf, dailyMissions, weeklyStats } from '../state/store.js';
 import { TRACE_PATHS } from '../data/routes.js';
 import { routeShapeSvg } from '../ui/shape.js';
+import { coachSay, COACH_NAME, COACH_ICON } from '../data/coach.js';
+
+/** Coach Zaap chat bubble — a sassy daily quip you can reroll + share. */
+function homeCoachHTML() {
+  const st = getState();
+  const line = coachSay('daily', { name: st.user?.name, streak: st.streak, level: levelOf().level });
+  return `<div class="coachbar">
+    <div class="coachav">${COACH_ICON}</div>
+    <div class="coachbody"><div class="coachname">${COACH_NAME} <span>ปากจัดประจำสนาม</span></div><div class="coachline" id="coachLine">${esc(line)}</div></div>
+    <div class="coachacts">
+      <button class="coachbtn" data-action="coachReroll" aria-label="มุกใหม่">🔄</button>
+      <button class="coachbtn" data-action="coachShare" aria-label="แชร์คำคม">📤</button>
+    </div>
+  </div>`;
+}
 
 /** Personal dashboard: level + XP, streak/stats, and today's missions. */
 function dashboardHTML() {
@@ -139,6 +154,7 @@ export function homeView() {
     : st.locStatus === 'loading' ? '⌖ กำลังหาตำแหน่ง…'
     : '⌖ แตะเพื่อใช้ตำแหน่งจริง';
   return `
+    <div class="home-hide">${homeCoachHTML()}</div>
     <div class="home-hero home-hide">${dashboardHTML()}</div>
     <div class="home-hide">${featuredHTML()}</div>
     <div class="searchwrap">

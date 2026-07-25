@@ -11,6 +11,7 @@ import { GpsRunTracker, SimRunTracker } from '../core/gps.js';
 import { fmt, pace } from '../core/format.js';
 import { epithet, rankTitle } from '../core/epithet.js';
 import { openShare } from './share.js';
+import { coachSay, COACH_NAME, COACH_ICON } from '../data/coach.js';
 
 /** Voice coach — announces each kilometre + pace (best-effort, off in settings). */
 function speak(text) {
@@ -212,7 +213,14 @@ function finishRun(ctx, summary) {
   const wonDuel = res.duelResults.find((d) => d.status === 'won');
   const lostDuel = res.duelResults.find((d) => d.status === 'lost');
 
+  // Coach Zaap reacts to the result (hype or roast)
+  const coachCtx = king ? 'king' : res.rank <= 3 ? 'top3' : !res.isBest ? 'slower' : res.isBest ? 'best' : 'mid';
+  const coachReaction = coachSay(coachCtx, { rank: res.rank, routeName: route.name });
+  speak(coachReaction.replace(/[^฀-๿0-9\s.,!?]/g, ' '));
+
   o.innerHTML = `<div class="sheet">
+    <div class="coachbar result"><div class="coachav">${COACH_ICON}</div>
+      <div class="coachbody"><div class="coachname">${COACH_NAME}</div><div class="coachline">${esc(coachReaction)}</div></div></div>
     <div class="resultBadge">
       <div class="eyebrow">ผลถูกดึงเข้าแอปแล้ว</div>
       <div class="rkbig">#${res.rank}</div>

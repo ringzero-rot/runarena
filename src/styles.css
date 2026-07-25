@@ -407,6 +407,19 @@ h1.title{font-family:var(--disp);font-weight:800;font-size:25px;margin:3px 0 2px
 .dhstats .me{color:var(--gold);border-color:rgba(245,184,61,.35)}
 .dhstats .dim{color:var(--dim)}
 
+/* ===== Coach Zaap 🌶️ — sassy commentator ===== */
+.coachbar{display:flex;align-items:center;gap:11px;background:linear-gradient(100deg,rgba(255,86,48,.13),rgba(245,184,61,.05));border:1px solid rgba(255,86,48,.35);border-radius:16px;padding:11px 12px;margin-bottom:12px}
+.coachbar.result{margin:0 0 12px}
+.coachav{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:radial-gradient(circle at 50% 35%,rgba(255,86,48,.3),rgba(20,24,34,.2));border:1.5px solid rgba(255,86,48,.5);border-radius:50%;animation:coachbob 2.4s ease-in-out infinite}
+@keyframes coachbob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-3px) rotate(4deg)}}
+.coachbody{flex:1;min-width:0}
+.coachname{font-family:var(--disp);font-weight:800;font-size:12px;color:var(--sunrise)}
+.coachname span{font-weight:500;font-size:9.5px;color:var(--dim);margin-left:4px}
+.coachline{font-size:13px;line-height:1.45;margin-top:2px}
+.coachacts{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.coachbtn{width:30px;height:30px;border-radius:9px;background:#0d1017;border:1px solid var(--line);color:var(--mid);font-size:13px;cursor:pointer}
+.coachbtn:active{transform:scale(.9)}
+
 /* personal records */
 .prgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
 .pr{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 4px;text-align:center}
