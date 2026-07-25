@@ -1,5 +1,5 @@
 /* RunArena service worker — app-shell cache + runtime caching for offline use. */
-const CACHE = 'runarena-v6';
+const CACHE = 'runarena-v7';
 
 // Core shell precached on install. Other same-origin modules and CDN assets are
 // cached at runtime the first time they're requested.
@@ -15,9 +15,15 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(SHELL).catch(() => {})).then(() => self.skipWaiting())
-  );
+  // Precache, then WAIT — the page shows an "update available" prompt and only
+  // activates the new version when the user taps refresh (see the message
+  // handler below). This avoids swapping code out from under an open session.
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL).catch(() => {})));
+});
+
+// The page asks the waiting worker to take over when the user accepts the update.
+self.addEventListener('message', (e) => {
+  if (e.data === 'SKIP_WAITING' || (e.data && e.data.type === 'SKIP_WAITING')) self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {

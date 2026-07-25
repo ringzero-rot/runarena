@@ -165,7 +165,40 @@ delegate(/** @type {HTMLElement} */ ($('app')), handlers);
 render();
 connectCloud(); // local-first: attaches Supabase in the background if configured
 
-// PWA: register the service worker when served over http(s).
+// PWA: register the service worker and prompt when a new version is ready.
+let updateAccepted = false; // reload only when the user accepted an update...
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    // ...not on the first-load claim (null -> active), which also fires this.
+    if (updateAccepted) location.reload();
+  });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      // if a new worker is already waiting (installed before this load), prompt now
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdatePrompt(reg);
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          // new version installed while an old one controls the page → offer refresh
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdatePrompt(reg);
+        });
+      });
+    }).catch(() => {});
+  });
+}
+
+/** Small non-blocking "update available" bar with a refresh button. */
+function showUpdatePrompt(reg) {
+  if ($('updatebar')) return; // already shown
+  const bar = document.createElement('div');
+  bar.className = 'updatebar';
+  bar.id = 'updatebar';
+  bar.innerHTML = `<span>มีเวอร์ชันใหม่ของ RunArena</span><button id="updateBtn">รีเฟรช</button>`;
+  document.body.appendChild(bar); // CSS animation reveals it (reliable even in bg tabs)
+  $('updateBtn').addEventListener('click', () => {
+    updateAccepted = true;
+    $('updateBtn').textContent = 'กำลังอัปเดต…';
+    (reg.waiting || reg.installing)?.postMessage('SKIP_WAITING'); // -> controllerchange -> reload
+  });
 }
